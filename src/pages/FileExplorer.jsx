@@ -50,6 +50,7 @@ export default function FileExplorer() {
       for (const item of items) {
         if (item.kind === 'file') {
           const file = item.getAsFile();
+
           if (file) {
             setSelectedFile(file);
             setIsUploadModalOpen(true);
@@ -110,26 +111,26 @@ export default function FileExplorer() {
   };
 
   return (
-    <div className="p-8 max-w-[1600px] mx-auto min-h-full">
+    <div className="p-8 max-w-[1600px] mx-auto min-h-full bg-slate-100">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-white mb-1">Files</h1>
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">Files</h1>
 
           <nav className="flex items-center gap-2 text-sm text-slate-500">
-            <span className="hover:text-blue-400 cursor-pointer">Root</span>
+            <span className="hover:text-blue-600 cursor-pointer">Root</span>
             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path d="M9 5l7 7-7 7" strokeWidth={2} />
             </svg>
-            <span className="text-slate-300">All Files</span>
+            <span className="text-slate-400">All Files</span>
           </nav>
         </div>
 
         <div className="flex items-center gap-3">
-          <button className="px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-700 transition-colors">
+          <button className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-sm">
             Create Folder
           </button>
 
-          <label className="flex items-center gap-2 px-4 py-2 bg-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-500 transition-colors shadow-lg shadow-blue-500/20 cursor-pointer">
+          <label className="flex items-center gap-2 px-4 py-2 bg-blue-600 rounded-xl text-sm font-semibold text-white hover:bg-blue-700 transition-colors shadow-sm cursor-pointer">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
                 d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
@@ -142,12 +143,12 @@ export default function FileExplorer() {
         </div>
       </div>
 
-      <p className="text-xs text-slate-500 mb-6 italic">
+      <p className="text-sm text-slate-500 mb-6 italic">
         Tip: Paste a file from your clipboard. It will become a pending upload first.
       </p>
 
       {error && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 flex items-center gap-3 text-red-400 mb-8">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3 text-red-600 mb-8">
           <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" strokeWidth={2} />
           </svg>
@@ -167,7 +168,7 @@ export default function FileExplorer() {
             </h2>
 
             {folders.length === 0 ? (
-              <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 text-slate-500 text-sm">
+              <div className="bg-white border border-slate-200 rounded-2xl p-6 text-slate-500 text-sm shadow-sm">
                 No folders found.
               </div>
             ) : (
@@ -175,15 +176,15 @@ export default function FileExplorer() {
                 {folders.map((folder) => (
                   <div
                     key={folder.id || folder._id}
-                    className="bg-slate-900 border border-slate-800 rounded-xl p-4 hover:border-slate-700 hover:bg-slate-800/40 cursor-pointer transition-all"
+                    className="bg-white border border-slate-200 rounded-2xl p-5 hover:border-blue-300 hover:shadow-md cursor-pointer transition-all"
                   >
-                    <div className="w-10 h-10 bg-blue-600/10 rounded-lg flex items-center justify-center text-blue-500 mb-3">
+                    <div className="w-11 h-11 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-4">
                       <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
                       </svg>
                     </div>
 
-                    <h3 className="font-medium text-slate-200 truncate">
+                    <h3 className="font-semibold text-slate-800 truncate">
                       {folder.name || 'Untitled Folder'}
                     </h3>
                   </div>
@@ -197,9 +198,9 @@ export default function FileExplorer() {
               Files
             </h2>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+            <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
               <table className="w-full text-left border-collapse">
-                <thead className="bg-slate-800/50 text-[11px] uppercase tracking-wider text-slate-400 font-bold border-b border-slate-800">
+                <thead className="bg-slate-50 text-[11px] uppercase tracking-wider text-slate-500 font-bold border-b border-slate-200">
                   <tr>
                     <th className="px-6 py-4">Name</th>
                     <th className="px-6 py-4">Size</th>
@@ -209,15 +210,15 @@ export default function FileExplorer() {
                   </tr>
                 </thead>
 
-                <tbody className="divide-y divide-slate-800 text-sm">
+                <tbody className="divide-y divide-slate-100 text-sm">
                   {files.map((file) => {
                     const fileId = file.id || file._id;
 
                     return (
-                      <tr key={fileId} className="hover:bg-slate-800/30 transition-colors">
+                      <tr key={fileId} className="hover:bg-slate-50 transition-colors">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-slate-800 rounded flex items-center justify-center text-slate-400">
+                            <div className="w-9 h-9 bg-slate-100 rounded-lg flex items-center justify-center text-slate-500">
                               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path
                                   d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
@@ -228,29 +229,29 @@ export default function FileExplorer() {
 
                             <Link
                               to={`/files/${fileId}`}
-                              className="font-medium text-slate-200 hover:text-blue-400 transition-colors cursor-pointer"
+                              className="font-semibold text-slate-800 hover:text-blue-600 transition-colors cursor-pointer"
                             >
                               {file.name || file.originalName || 'Untitled File'}
                             </Link>
                           </div>
                         </td>
 
-                        <td className="px-6 py-4 text-slate-400">
+                        <td className="px-6 py-4 text-slate-500">
                           {formatFileSize(file.size)}
                         </td>
 
-                        <td className="px-6 py-4 text-slate-400">
+                        <td className="px-6 py-4 text-slate-500">
                           {file.uploader?.name || file.uploadedBy?.name || 'User'}
                         </td>
 
-                        <td className="px-6 py-4 text-slate-400">
+                        <td className="px-6 py-4 text-slate-500">
                           v{file.currentVersion || file.version || 1}
                         </td>
 
                         <td className="px-6 py-4 text-right">
                           <button
                             onClick={() => handleDeleteFile(fileId)}
-                            className="p-2 text-slate-600 hover:text-red-400 transition-colors"
+                            className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                             title="Delete file"
                           >
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

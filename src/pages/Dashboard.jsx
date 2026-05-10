@@ -1,88 +1,177 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useEffect, useState } from 'react';
 import { storageService } from '../api/services';
+import { formatSize } from '../utils/formatters';
 
 export default function Dashboard() {
-  const { user } = useAuth();
-  const [stats, setStats] = useState([
-    { label: 'Total Files', value: '—', sub: 'Documents', icon: DocumentIcon, color: 'text-blue-500' },
-    { label: 'Total Folders', value: '—', sub: 'Departments', icon: FolderIcon, color: 'text-indigo-500' },
-    { label: 'Storage Used', value: '—', sub: 'Of 10 GB limit', icon: StorageIcon, color: 'text-amber-500' },
-  ]);
+  const [summary, setSummary] = useState({
+    totalFiles: 0,
+    totalFolders: 0,
+    storageUsed: 0,
+    storageLimit: 10 * 1024 * 1024 * 1024,
+  });
+
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchSummary() {
-      try {
-        const res = await storageService.getSummary();
-        const data = res.data;
-
-        setStats([
-          { label: 'Total Files', value: data.fileCount || 0, sub: 'Active documents', icon: DocumentIcon, color: 'text-blue-500' },
-          { label: 'Total Folders', value: data.folderCount || 0, sub: 'Organized collections', icon: FolderIcon, color: 'text-indigo-500' },
-          { label: 'Storage Used', value: formatBytes(data.totalSize || 0), sub: `Used of ${formatBytes(data.limit || 10737418240)}`, icon: StorageIcon, color: 'text-amber-500' },
-        ]);
-      } catch (err) {
-        console.error('Stats fetch failed');
-      }
-    }
     fetchSummary();
   }, []);
 
+  const fetchSummary = async () => {
+    try {
+      const res = await storageService.getSummary();
+      const data = res.data || res;
+
+      setSummary({
+        totalFiles: data.totalFiles || 0,
+        totalFolders: data.totalFolders || 0,
+        storageUsed: data.storageUsed || 0,
+        storageLimit: data.storageLimit || 10 * 1024 * 1024 * 1024,
+      });
+    } catch (error) {
+      console.error('Failed to load dashboard summary:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const storagePercent =
+    summary.storageLimit > 0
+      ? Math.round((summary.storageUsed / summary.storageLimit) * 100)
+      : 0;
+
+  if (loading) {
+    return (
+      <div className="p-8">
+        <p className="text-slate-500">Loading dashboard...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-8 max-w-[1600px] mx-auto">
-      <div className="mb-10">
-        <h1 className="text-3xl font-bold text-white mb-2">
-          Good day, {user?.name?.split(' ')[0] || 'User'}!
+    <div className="p-8 space-y-8 bg-slate-100 min-h-full">
+      <section>
+        <h1 className="text-3xl font-bold text-slate-900">
+          Good day, Yaqoob!
         </h1>
-        <p className="text-slate-400">Welcome to the Private Company Document Repository.</p>
-      </div>
+        <p className="text-slate-500 mt-2">
+          Welcome to the Private Company Document Repository.
+        </p>
+      </section>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-        {stats.map((stat) => (
-          <div key={stat.label} className="bg-slate-900 border border-slate-800 rounded-2xl p-6 hover:border-slate-700 transition-all group">
-            <div className="flex items-start justify-between mb-4">
-              <div className={`p-3 bg-slate-800 rounded-xl ${stat.color} group-hover:scale-110 transition-transform`}>
-                <stat.icon className="w-6 h-6" />
-              </div>
-            </div>
-            <h3 className="text-sm font-medium text-slate-500 uppercase tracking-widest">{stat.label}</h3>
-            <p className="text-3xl font-bold text-white mt-1">{stat.value}</p>
-            <p className="text-xs text-slate-500 mt-2">{stat.sub}</p>
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <DashboardCard
+          title="Total Files"
+          value={summary.totalFiles}
+          subtitle="Active documents"
+          icon="file"
+          color="blue"
+        />
+
+        <DashboardCard
+          title="Total Folders"
+          value={summary.totalFolders}
+          subtitle="Organized collections"
+          icon="folder"
+          color="indigo"
+        />
+
+        <DashboardCard
+          title="Storage Used"
+          value={formatSize(summary.storageUsed)}
+          subtitle={`Used of ${formatSize(summary.storageLimit)}`}
+          icon="storage"
+          color="amber"
+        />
+      </section>
+
+      <section className="bg-white border border-slate-200 rounded-2xl shadow-sm p-8">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+          <div>
+            <h2 className="text-lg font-semibold text-slate-900">
+              Repository Status
+            </h2>
+            <p className="text-sm text-slate-500 mt-1">
+              Your document repository is online and ready.
+            </p>
           </div>
-        ))}
-      </div>
 
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center">
-        <div className="w-16 h-16 bg-slate-800 rounded-2xl flex items-center justify-center text-slate-600 mx-auto mb-4">
-          <DocumentIcon className="w-8 h-8" />
+          <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 text-emerald-700 text-sm font-medium">
+            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+            Online
+          </span>
         </div>
-        <p className="text-slate-400 font-medium">Repository Online</p>
-        <p className="text-slate-600 text-sm mt-1">Visit the Files section to manage your documents.</p>
-      </div>
+
+        <div className="mt-8">
+          <div className="flex items-center justify-between text-sm mb-2">
+            <span className="font-medium text-slate-700">Storage Usage</span>
+            <span className="text-slate-500">{storagePercent}%</span>
+          </div>
+
+          <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+            <div
+              className={`h-full rounded-full ${storagePercent >= 95
+                  ? 'bg-red-500'
+                  : storagePercent >= 80
+                    ? 'bg-amber-500'
+                    : 'bg-blue-600'
+                }`}
+              style={{ width: `${Math.min(storagePercent, 100)}%` }}
+            ></div>
+          </div>
+
+          <p className="text-xs text-slate-400 mt-2">
+            {formatSize(summary.storageUsed)} used from{' '}
+            {formatSize(summary.storageLimit)} available storage.
+          </p>
+        </div>
+      </section>
     </div>
   );
 }
 
-function formatBytes(bytes) {
-  if (bytes === 0) return '0 B';
-  const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-}
+function DashboardCard({ title, value, subtitle, icon, color }) {
+  const colorClasses = {
+    blue: 'bg-blue-50 text-blue-600',
+    indigo: 'bg-indigo-50 text-indigo-600',
+    amber: 'bg-amber-50 text-amber-600',
+  };
 
-/* --- Icons --- */
-function DocumentIcon({ className }) { return <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" strokeWidth={2} /></svg>; }
-function FolderIcon({ className }) { return <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" strokeWidth={2} /></svg>; }
-function StorageIcon({ className }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4-3.582 4-8 4-8-1.79-8-4zm0 0v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7"
-      />
-    </svg>
+    <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6">
+      <div
+        className={`w-12 h-12 rounded-xl flex items-center justify-center ${colorClasses[color]}`}
+      >
+        {icon === 'file' && (
+          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+          </svg>
+        )}
+
+        {icon === 'folder' && (
+          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7a2 2 0 012-2h5l2 2h7a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
+          </svg>
+        )}
+
+        {icon === 'storage' && (
+          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7c0 1.657 3.582 3 8 3s8-1.343 8-3-3.582-3-8-3-8 1.343-8 3z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 1.657 3.582 3 8 3s8-1.343 8-3V7" />
+          </svg>
+        )}
+      </div>
+
+      <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mt-6">
+        {title}
+      </p>
+
+      <h3 className="text-3xl font-bold text-slate-900 mt-2">
+        {value}
+      </h3>
+
+      <p className="text-sm text-slate-500 mt-2">
+        {subtitle}
+      </p>
+    </div>
   );
 }
