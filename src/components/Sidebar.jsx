@@ -1,65 +1,148 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { useState } from "react";
 
-const navItems = [
-  { name: 'Dashboard', path: '/dashboard', icon: DashboardIcon },
-  { name: 'Files', path: '/files', icon: FilesIcon },
-  { name: 'Users', path: '/users', icon: UsersIcon },
-  { name: 'Permissions', path: '/permissions', icon: LockIcon },
-  { name: 'Activity', path: '/activity', icon: ActivityIcon },
-  { name: 'Storage', path: '/storage', icon: StorageIcon },
-  { name: 'Search', path: '/search', icon: SearchIcon },
-  { name: 'Deleted Items', path: '/trash', icon: TrashIcon },
+import {
+  LayoutDashboard,
+  FolderOpen,
+  Users,
+  ShieldCheck,
+  Activity,
+  HardDrive,
+  Search,
+  Trash2,
+  PanelLeftClose,
+  PanelLeftOpen,
+} from "lucide-react";
+
+const allNavItems = [
+  { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+  { name: "Files", path: "/files", icon: FolderOpen },
+  { name: "Users", path: "/users", icon: Users, roles: ["superadmin"] },
+  {
+    name: "Permissions",
+    path: "/permissions",
+    icon: ShieldCheck,
+    roles: ["superadmin", "owner"],
+  },
+  { name: "Activity", path: "/activity", icon: Activity },
+  { name: "Storage", path: "/storage", icon: HardDrive },
+  { name: "Search", path: "/search", icon: Search },
+  { name: "Deleted Items", path: "/trash", icon: Trash2 },
 ];
 
 export default function Sidebar() {
+  const { user } = useAuth();
+  const [collapsed, setCollapsed] = useState(false);
+
+  const navItems = allNavItems.filter((item) => {
+    if (!item.roles) return true;
+    return item.roles.includes(user.role);
+  });
+
   return (
-    <aside className="w-64 bg-white border-r border-slate-200 flex flex-col h-screen sticky top-0 overflow-y-auto">
-      <div className="p-6 border-b border-slate-200 flex items-center gap-3">
-        <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white">
-          <FilesIcon className="w-5 h-5" />
-        </div>
-        <span className="font-bold text-xl tracking-tight text-slate-900">DocRepo</span>
+    <aside
+      className={`h-screen sticky top-0 bg-white border-r border-slate-200 flex flex-col transition-all duration-300 ${collapsed ? "w-[78px]" : "w-[220px]"
+        }`}
+    >
+      {/* Header */}
+      <div className="h-[74px] border-b border-slate-200 flex items-center justify-between px-4">
+        {!collapsed ? (
+          <>
+            <div className="flex items-center gap-3 overflow-hidden">
+              <img
+                src="/logo.jpg"
+                alt="Logo"
+                className="w-9 h-9 rounded-xl object-cover"
+              />
+
+              <div className="overflow-hidden">
+                <h1 className="text-[15px] font-semibold text-slate-900 truncate">
+                  DMS ConnectHub
+                </h1>
+
+                <p className="text-[11px] text-slate-500 truncate">
+                  Document Repository
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setCollapsed(true)}
+              className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-500 transition-all"
+            >
+              <PanelLeftClose size={18} />
+            </button>
+          </>
+        ) : (
+          <div className="w-full flex items-center justify-center">
+            <button
+              onClick={() => setCollapsed(false)}
+              className="w-10 h-10 rounded-xl hover:bg-slate-100 flex items-center justify-center text-slate-500 transition-all"
+            >
+              <PanelLeftOpen size={18} />
+            </button>
+          </div>
+        )}
       </div>
 
-      <nav className="flex-1 p-4 space-y-1">
-        {navItems.map((item) => (
-          <NavLink
-            key={item.name}
-            to={item.path}
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all ${isActive
-                ? 'bg-blue-50 text-blue-700 border border-blue-100'
-                : 'text-slate-600 hover:text-slate-950 hover:bg-slate-100'
-              }`
-            }
-          >
-            <item.icon className="w-5 h-5" />
-            {item.name}
-          </NavLink>
-        ))}
+      {/* Navigation */}
+      <nav className="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+
+          return (
+            <NavLink
+              key={item.name}
+              to={item.path}
+              title={collapsed ? item.name : ""}
+              className={({ isActive }) =>
+                `flex items-center ${collapsed ? "justify-center" : "gap-3"
+                } h-11 px-3 rounded-xl text-[14px] font-medium transition-all duration-200 ${isActive
+                  ? "bg-blue-600 text-white shadow-sm"
+                  : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                }`
+              }
+            >
+              <Icon size={18} strokeWidth={2.2} />
+
+              {!collapsed && (
+                <span className="truncate">{item.name}</span>
+              )}
+            </NavLink>
+          );
+        })}
       </nav>
 
-      <div className="p-4 border-t border-slate-200">
-        <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
-          <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">
-            DocRepo MVP
-          </p>
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-600">v1.2.0-beta</span>
+      {/* Footer */}
+      <div className="p-3 border-t border-slate-200">
+        {!collapsed ? (
+          <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+                  DMS
+                </p>
+
+                <p className="text-xs text-slate-600 mt-0.5">
+                  v1.2.0-beta
+                </p>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                <span className="text-[11px] text-emerald-600 font-medium">
+                  Live
+                </span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="flex justify-center">
             <span className="w-2 h-2 rounded-full bg-emerald-500" />
           </div>
-        </div>
+        )}
       </div>
     </aside>
   );
 }
-
-/* --- Icons --- */
-function DashboardIcon({ className }) { return <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>; }
-function FilesIcon({ className }) { return <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>; }
-function UsersIcon({ className }) { return <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>; }
-function LockIcon({ className }) { return <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 00-2 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>; }
-function ActivityIcon({ className }) { return <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>; }
-function StorageIcon({ className }) { return <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4-3.582 4-8 4-8-1.79-8-4zm0 0v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7" /></svg>; }
-function SearchIcon({ className }) { return <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>; }
-function TrashIcon({ className }) { return <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>; }

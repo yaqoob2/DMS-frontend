@@ -2,15 +2,19 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { fileService, folderService } from '../api/services';
 import UploadModal from '../components/UploadModal';
+import CreateFolderModal from '../components/CreateFolderModal';
 
 export default function FileExplorer() {
   const [folders, setFolders] = useState([]);
   const [files, setFiles] = useState([]);
+  const [selectedFolder, setSelectedFolder] = useState(null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   const [selectedFile, setSelectedFile] = useState(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
 
   const fetchData = useCallback(async () => {
     try {
@@ -21,16 +25,8 @@ export default function FileExplorer() {
         fileService.getAll().catch(() => ({ data: [] })),
       ]);
 
-      const foldersData = Array.isArray(foldersRes.data)
-        ? foldersRes.data
-        : foldersRes.data?.folders || [];
-
-      const filesData = Array.isArray(filesRes.data)
-        ? filesRes.data
-        : filesRes.data?.files || [];
-
-      setFolders(foldersData);
-      setFiles(filesData);
+      setFolders(Array.isArray(foldersRes.data) ? foldersRes.data : foldersRes.data?.folders || []);
+      setFiles(Array.isArray(filesRes.data) ? filesRes.data : filesRes.data?.files || []);
       setError('');
     } catch {
       setError('Connection failed. Please check your backend.');
@@ -43,25 +39,23 @@ export default function FileExplorer() {
     fetchData();
   }, [fetchData]);
 
-  useEffect(() => {
-    const handlePaste = (e) => {
-      const items = e.clipboardData?.items || [];
+  const getId = (item) => item?.id || item?._id;
 
-      for (const item of items) {
-        if (item.kind === 'file') {
-          const file = item.getAsFile();
+  const selectedFolderId = getId(selectedFolder);
 
-          if (file) {
-            setSelectedFile(file);
-            setIsUploadModalOpen(true);
-          }
-        }
-      }
-    };
+  const visibleFiles = selectedFolder
+    ? files.filter((file) => {
+      const fileFolderId =
+        file.folderId?._id ||
+        file.folderId?.id ||
+        file.folderId ||
+        file.folder?._id ||
+        file.folder?.id ||
+        file.folder;
 
-    window.addEventListener('paste', handlePaste);
-    return () => window.removeEventListener('paste', handlePaste);
-  }, []);
+      return String(fileFolderId) === String(selectedFolderId);
+    })
+    : files;
 
   const handleFileSelect = (e) => {
     const file = e.target.files?.[0];
@@ -76,13 +70,14 @@ export default function FileExplorer() {
 
   const handleUpload = async (file, commitMessage, folderId = null, onProgress) => {
     try {
-      const formData = new FormData();
+      const finalFolderId = selectedFolderId || folderId;
 
+      const formData = new FormData();
       formData.append('file', file);
       formData.append('commitMessage', commitMessage);
 
-      if (folderId) {
-        formData.append('folderId', folderId);
+      if (finalFolderId) {
+        formData.append('folderId', finalFolderId);
       }
 
       await fileService.upload(formData, onProgress);
@@ -92,6 +87,36 @@ export default function FileExplorer() {
       fetchData();
     } catch (err) {
       alert(err.response?.data?.message || 'Upload failed');
+    }
+  };
+
+  const handleCreateFolder = async (name) => {
+    try {
+      await folderService.create({ name });
+      fetchData();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to create folder');
+    }
+  };
+
+  const handleDeleteFolder = async (id, e) => {
+    e.stopPropagation();
+
+    if (!window.confirm('Are you sure you want to delete this folder?')) return;
+
+    try {
+      await folderService.delete(id, {
+        confirm: true,
+        reason: 'Deleted from frontend file explorer',
+      });
+
+      if (String(selectedFolderId) === String(id)) {
+        setSelectedFolder(null);
+      }
+
+      fetchData();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Delete folder failed');
     }
   };
 
@@ -111,170 +136,275 @@ export default function FileExplorer() {
   };
 
   return (
-    <div className="p-8 max-w-[1600px] mx-auto min-h-full bg-slate-100">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+    <div className="p-4 xl:p-5 max-w-[1450px] mx-auto bg-[#f8fafc] min-h-full">
+      {/* Header */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mb-5">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Files</h1>
+          <h1 className="text-[28px] font-bold tracking-tight text-slate-900">
+            Files
+          </h1>
 
-          <nav className="flex items-center gap-2 text-sm text-slate-500">
-            <span className="hover:text-blue-600 cursor-pointer">Root</span>
-            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path d="M9 5l7 7-7 7" strokeWidth={2} />
-            </svg>
-            <span className="text-slate-400">All Files</span>
-          </nav>
+          <div className="flex items-center gap-2 mt-1 text-[12px] text-slate-500">
+            <button
+              onClick={() => setSelectedFolder(null)}
+              className="hover:text-blue-600 font-medium"
+            >
+              Root
+            </button>
+
+            <span>/</span>
+
+            <span className="text-slate-700 font-semibold">
+              {selectedFolder
+                ? selectedFolder.name
+                : "All Files"}
+            </span>
+          </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-sm">
+        {/* Buttons */}
+        <div className="flex items-center gap-2">
+          {selectedFolder && (
+            <button
+              onClick={() => setSelectedFolder(null)}
+              className="h-9 px-4 bg-white border border-slate-200 rounded-md text-[12px] font-semibold text-slate-700 hover:bg-slate-50 transition-all"
+            >
+              Back
+            </button>
+          )}
+
+          <button
+            onClick={() => setIsCreateFolderOpen(true)}
+            className="h-9 px-4 bg-white border border-slate-200 rounded-md text-[12px] font-semibold text-slate-700 hover:bg-slate-50 transition-all"
+          >
             Create Folder
           </button>
 
-          <label className="flex items-center gap-2 px-4 py-2 bg-blue-600 rounded-xl text-sm font-semibold text-white hover:bg-blue-700 transition-colors shadow-sm cursor-pointer">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-                strokeWidth={2}
-              />
-            </svg>
+          <label className="h-9 px-4 bg-blue-600 rounded-md text-[12px] font-semibold text-white hover:bg-blue-700 transition-all cursor-pointer flex items-center justify-center">
             Upload
-            <input type="file" className="hidden" onChange={handleFileSelect} />
+            <input
+              type="file"
+              className="hidden"
+              onChange={handleFileSelect}
+            />
           </label>
         </div>
       </div>
 
-      <p className="text-sm text-slate-500 mb-6 italic">
-        Tip: Paste a file from your clipboard. It will become a pending upload first.
-      </p>
+      {/* Tip */}
+      <div className="mb-5">
+        <p className="text-[12px] text-slate-500">
+          {selectedFolder
+            ? `Uploads will be stored inside "${selectedFolder.name}".`
+            : "Click folders to browse their files."}
+        </p>
+      </div>
 
+      {/* Error */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3 text-red-600 mb-8">
-          <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" strokeWidth={2} />
-          </svg>
-          <p className="text-sm">{error}</p>
+        <div className="bg-red-50 border border-red-200 rounded-md px-4 py-3 text-red-600 text-[12px] mb-5">
+          {error}
         </div>
       )}
 
+      {/* Loader */}
       {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+        <div className="flex items-center justify-center py-24">
+          <div className="w-7 h-7 border-[3px] border-blue-600 border-t-transparent rounded-full animate-spin" />
         </div>
       ) : (
-        <div className="space-y-10">
-          <section>
-            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-4">
-              Folders
-            </h2>
+        <div className="space-y-6">
+          {/* Folder Section */}
+          {!selectedFolder && (
+            <section>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-[11px] uppercase tracking-[0.18em] text-slate-400 font-bold">
+                  Folders
+                </h2>
 
-            {folders.length === 0 ? (
-              <div className="bg-white border border-slate-200 rounded-2xl p-6 text-slate-500 text-sm shadow-sm">
-                No folders found.
+                <span className="text-[11px] text-slate-400">
+                  {folders.length} folders
+                </span>
               </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                {folders.map((folder) => (
-                  <div
-                    key={folder.id || folder._id}
-                    className="bg-white border border-slate-200 rounded-2xl p-5 hover:border-blue-300 hover:shadow-md cursor-pointer transition-all"
-                  >
-                    <div className="w-11 h-11 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-4">
-                      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
-                      </svg>
-                    </div>
 
-                    <h3 className="font-semibold text-slate-800 truncate">
-                      {folder.name || 'Untitled Folder'}
-                    </h3>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-
-          <section>
-            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-4">
-              Files
-            </h2>
-
-            <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-              <table className="w-full text-left border-collapse">
-                <thead className="bg-slate-50 text-[11px] uppercase tracking-wider text-slate-500 font-bold border-b border-slate-200">
-                  <tr>
-                    <th className="px-6 py-4">Name</th>
-                    <th className="px-6 py-4">Size</th>
-                    <th className="px-6 py-4">Uploader</th>
-                    <th className="px-6 py-4">Version</th>
-                    <th className="px-6 py-4 text-right">Actions</th>
-                  </tr>
-                </thead>
-
-                <tbody className="divide-y divide-slate-100 text-sm">
-                  {files.map((file) => {
-                    const fileId = file.id || file._id;
+              {folders.length === 0 ? (
+                <div className="bg-white border border-slate-200 rounded-md p-5 text-slate-500 text-[13px]">
+                  No folders found.
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
+                  {folders.map((folder) => {
+                    const folderId = getId(folder);
 
                     return (
-                      <tr key={fileId} className="hover:bg-slate-50 transition-colors">
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 bg-slate-100 rounded-lg flex items-center justify-center text-slate-500">
-                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path
-                                  d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                                  strokeWidth={2}
-                                />
-                              </svg>
+                      <div
+                        key={folderId}
+                        onClick={() => setSelectedFolder(folder)}
+                        className="group bg-white border border-slate-200 rounded-md p-4 hover:border-blue-300 hover:shadow-sm transition-all cursor-pointer"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="min-w-0">
+                            <div className="w-10 h-10 bg-blue-50 border border-blue-100 rounded-md flex items-center justify-center text-blue-600 text-base mb-3">
+                              📁
                             </div>
 
-                            <Link
-                              to={`/files/${fileId}`}
-                              className="font-semibold text-slate-800 hover:text-blue-600 transition-colors cursor-pointer"
-                            >
-                              {file.name || file.originalName || 'Untitled File'}
-                            </Link>
+                            <h3 className="text-[14px] font-semibold text-slate-800 truncate">
+                              {folder.name || "Untitled"}
+                            </h3>
+
+                            <p className="text-[11px] text-slate-400 mt-1">
+                              Folder
+                            </p>
                           </div>
-                        </td>
 
-                        <td className="px-6 py-4 text-slate-500">
-                          {formatFileSize(file.size)}
-                        </td>
-
-                        <td className="px-6 py-4 text-slate-500">
-                          {file.uploader?.name || file.uploadedBy?.name || 'User'}
-                        </td>
-
-                        <td className="px-6 py-4 text-slate-500">
-                          v{file.currentVersion || file.version || 1}
-                        </td>
-
-                        <td className="px-6 py-4 text-right">
                           <button
-                            onClick={() => handleDeleteFile(fileId)}
-                            className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Delete file"
+                            onClick={(e) =>
+                              handleDeleteFolder(folderId, e)
+                            }
+                            className="opacity-0 group-hover:opacity-100 transition-all text-[11px] font-semibold text-red-500 hover:text-red-600"
                           >
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path
-                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                strokeWidth={2}
-                              />
-                            </svg>
+                            Delete
                           </button>
-                        </td>
-                      </tr>
+                        </div>
+                      </div>
                     );
                   })}
+                </div>
+              )}
+            </section>
+          )}
 
-                  {(!files || files.length === 0) && (
-                    <tr>
-                      <td colSpan="5" className="px-6 py-12 text-center text-slate-500">
-                        No files uploaded yet.
-                      </td>
+          {/* Files */}
+          <section>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-[11px] uppercase tracking-[0.18em] text-slate-400 font-bold">
+                {selectedFolder
+                  ? `${selectedFolder.name} Files`
+                  : "Files"}
+              </h2>
+
+              <span className="text-[11px] text-slate-400">
+                {visibleFiles.length} files
+              </span>
+            </div>
+
+            <div className="bg-white border border-slate-200 rounded-md overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead className="bg-slate-50 border-b border-slate-200">
+                    <tr className="text-[10px] uppercase tracking-[0.16em] text-slate-400">
+                      <th className="px-5 py-3 text-left font-bold">
+                        Name
+                      </th>
+
+                      <th className="px-5 py-3 text-left font-bold">
+                        Size
+                      </th>
+
+                      <th className="px-5 py-3 text-left font-bold">
+                        Uploader
+                      </th>
+
+                      <th className="px-5 py-3 text-left font-bold">
+                        Version
+                      </th>
+
+                      <th className="px-5 py-3 text-right font-bold">
+                        Actions
+                      </th>
                     </tr>
-                  )}
-                </tbody>
-              </table>
+                  </thead>
+
+                  <tbody className="divide-y divide-slate-100">
+                    {visibleFiles.map((file) => {
+                      const fileId = getId(file);
+
+                      return (
+                        <tr
+                          key={fileId}
+                          className="hover:bg-slate-50 transition-all"
+                        >
+                          <td className="px-5 py-3">
+                            <Link
+                              to={`/files/${fileId}`}
+                              className="flex items-center gap-3 group"
+                            >
+                              <div className="w-9 h-9 rounded-md bg-slate-100 border border-slate-200 flex items-center justify-center text-sm">
+                                📄
+                              </div>
+
+                              <div className="min-w-0">
+                                <p className="text-[13px] font-semibold text-slate-800 truncate group-hover:text-blue-600">
+                                  {file.name ||
+                                    file.originalName ||
+                                    "Untitled"}
+                                </p>
+
+                                <p className="text-[11px] text-slate-400">
+                                  Document
+                                </p>
+                              </div>
+                            </Link>
+                          </td>
+
+                          <td className="px-5 py-3 text-[12px] text-slate-500">
+                            {formatFileSize(file.size)}
+                          </td>
+
+                          <td className="px-5 py-3 text-[12px] text-slate-500">
+                            {file.uploader?.name ||
+                              file.uploadedBy?.name ||
+                              "User"}
+                          </td>
+
+                          <td className="px-5 py-3">
+                            <span className="inline-flex items-center px-2 py-1 rounded-md bg-blue-50 text-blue-700 text-[11px] font-semibold border border-blue-100">
+                              v
+                              {file.currentVersion ||
+                                file.version ||
+                                1}
+                            </span>
+                          </td>
+
+                          <td className="px-5 py-3 text-right">
+                            <button
+                              onClick={() =>
+                                handleDeleteFile(fileId)
+                              }
+                              className="text-[12px] font-semibold text-red-500 hover:text-red-600"
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+
+                    {visibleFiles.length === 0 && (
+                      <tr>
+                        <td
+                          colSpan="5"
+                          className="px-6 py-14 text-center"
+                        >
+                          <div className="flex flex-col items-center">
+                            <div className="w-12 h-12 rounded-md bg-slate-100 border border-slate-200 flex items-center justify-center text-xl mb-3">
+                              📂
+                            </div>
+
+                            <p className="text-[13px] font-semibold text-slate-700">
+                              No files found
+                            </p>
+
+                            <p className="text-[12px] text-slate-400 mt-1">
+                              Upload your first document.
+                            </p>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </section>
         </div>
@@ -290,6 +420,12 @@ export default function FileExplorer() {
           setSelectedFile(null);
         }}
       />
+
+      <CreateFolderModal
+        isOpen={isCreateFolderOpen}
+        onClose={() => setIsCreateFolderOpen(false)}
+        onCreate={handleCreateFolder}
+      />
     </div>
   );
 }
@@ -298,10 +434,7 @@ function formatFileSize(bytes = 0) {
   if (!bytes) return '0 B';
 
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-  const i = Math.min(
-    Math.floor(Math.log(bytes) / Math.log(1024)),
-    sizes.length - 1
-  );
+  const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), sizes.length - 1);
 
   return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${sizes[i]}`;
 }

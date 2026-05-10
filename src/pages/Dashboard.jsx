@@ -1,13 +1,17 @@
-import { useEffect, useState } from 'react';
-import { storageService } from '../api/services';
-import { formatSize } from '../utils/formatters';
+import { useEffect, useState } from "react";
+import api from "../api/axios";
+import { formatSize } from "../utils/formatters";
+import { useAuth } from "../context/AuthContext";
 
 export default function Dashboard() {
+  const { user } = useAuth();
+
   const [summary, setSummary] = useState({
     totalFiles: 0,
     totalFolders: 0,
     storageUsed: 0,
-    storageLimit: 10 * 1024 * 1024 * 1024,
+    storageLimit: 0,
+    usagePercentage: 0,
   });
 
   const [loading, setLoading] = useState(true);
@@ -18,158 +22,213 @@ export default function Dashboard() {
 
   const fetchSummary = async () => {
     try {
-      const res = await storageService.getSummary();
-      const data = res.data || res;
+      const [filesRes, foldersRes, storageRes] =
+        await Promise.all([
+          api.get("/files"),
+          api.get("/folders"),
+          api.get("/storage/summary"),
+        ]);
+
+      const files =
+        filesRes.data?.files ||
+        filesRes.data?.data ||
+        [];
+
+      const folders =
+        foldersRes.data?.folders ||
+        foldersRes.data?.data ||
+        [];
+
+      const storage =
+        storageRes.data?.data || {};
 
       setSummary({
-        totalFiles: data.totalFiles || 0,
-        totalFolders: data.totalFolders || 0,
-        storageUsed: data.storageUsed || 0,
-        storageLimit: data.storageLimit || 10 * 1024 * 1024 * 1024,
+        totalFiles:
+          files.length ||
+          filesRes.data?.count ||
+          0,
+
+        totalFolders:
+          folders.length ||
+          foldersRes.data?.count ||
+          0,
+
+        storageUsed:
+          storage.usedBytes || 0,
+
+        storageLimit:
+          storage.limitBytes || 0,
+
+        usagePercentage: Number(
+          storage.usagePercentage || 0
+        ),
       });
     } catch (error) {
-      console.error('Failed to load dashboard summary:', error);
+      console.error(
+        "Failed to load dashboard summary:",
+        error
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const storagePercent =
-    summary.storageLimit > 0
-      ? Math.round((summary.storageUsed / summary.storageLimit) * 100)
-      : 0;
-
   if (loading) {
     return (
-      <div className="p-8">
-        <p className="text-slate-500">Loading dashboard...</p>
+      <div className="p-5 text-[13px] text-slate-500">
+        Loading dashboard...
       </div>
     );
   }
 
   return (
-    <div className="p-8 space-y-8 bg-slate-100 min-h-full">
-      <section>
-        <h1 className="text-3xl font-bold text-slate-900">
-          Good day, Yaqoob!
-        </h1>
-        <p className="text-slate-500 mt-2">
-          Welcome to the Private Company Document Repository.
-        </p>
+    <div className="min-h-full bg-[#f8fafc] p-5 max-w-[1500px] mx-auto">
+      {/* Header */}
+      <section className="mb-5">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div>
+            <h1 className="text-[30px] font-bold tracking-tight text-slate-900">
+              Good day, {user?.name}
+            </h1>
+
+            <p className="mt-1 text-[13px] text-slate-500">
+              Private Company Document Repository overview.
+            </p>
+          </div>
+
+          <div className="rounded-md border border-emerald-100 bg-emerald-50 px-4 py-2">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+
+              <span className="text-[12px] font-semibold text-emerald-700">
+                System Online
+              </span>
+            </div>
+          </div>
+        </div>
       </section>
 
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Stats */}
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
         <DashboardCard
           title="Total Files"
           value={summary.totalFiles}
           subtitle="Active documents"
-          icon="file"
-          color="blue"
         />
 
         <DashboardCard
           title="Total Folders"
           value={summary.totalFolders}
-          subtitle="Organized collections"
-          icon="folder"
-          color="indigo"
+          subtitle="Folder collections"
         />
 
         <DashboardCard
           title="Storage Used"
           value={formatSize(summary.storageUsed)}
-          subtitle={`Used of ${formatSize(summary.storageLimit)}`}
-          icon="storage"
-          color="amber"
+          subtitle={`${summary.usagePercentage.toFixed(
+            2
+          )}% of ${formatSize(
+            summary.storageLimit
+          )}`}
         />
       </section>
 
-      <section className="bg-white border border-slate-200 rounded-2xl shadow-sm p-8">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+      {/* Storage */}
+      <section className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
           <div>
-            <h2 className="text-lg font-semibold text-slate-900">
-              Repository Status
+            <p className="text-[11px] uppercase tracking-[0.16em] text-slate-400 font-bold mb-2">
+              Repository Storage
+            </p>
+
+            <h2 className="text-[28px] font-bold text-slate-900">
+              {summary.usagePercentage.toFixed(2)}%
             </h2>
-            <p className="text-sm text-slate-500 mt-1">
-              Your document repository is online and ready.
+
+            <p className="mt-1 text-[13px] text-slate-500">
+              {formatSize(summary.storageUsed)} used
+              from{" "}
+              {formatSize(summary.storageLimit)}
             </p>
           </div>
 
-          <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 text-emerald-700 text-sm font-medium">
-            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-            Online
-          </span>
-        </div>
+          <div className="min-w-[260px]">
+            <div className="mb-2 flex justify-between text-[12px]">
+              <span className="font-semibold text-slate-600">
+                Usage
+              </span>
 
-        <div className="mt-8">
-          <div className="flex items-center justify-between text-sm mb-2">
-            <span className="font-medium text-slate-700">Storage Usage</span>
-            <span className="text-slate-500">{storagePercent}%</span>
+              <span className="text-slate-500">
+                {summary.usagePercentage.toFixed(
+                  2
+                )}
+                %
+              </span>
+            </div>
+
+            <div className="h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
+              <div
+                className={`h-full transition-all duration-500 ${summary.usagePercentage >= 95
+                    ? "bg-red-600"
+                    : summary.usagePercentage >= 80
+                      ? "bg-yellow-500"
+                      : "bg-blue-600"
+                  }`}
+                style={{
+                  width: `${Math.max(
+                    Math.min(
+                      summary.usagePercentage,
+                      100
+                    ),
+                    summary.usagePercentage > 0
+                      ? 1
+                      : 0
+                  )}%`,
+                }}
+              />
+            </div>
+
+            <div className="mt-3">
+              <span
+                className={`inline-flex items-center rounded-md px-2.5 py-1 text-[11px] font-semibold border ${summary.usagePercentage >= 95
+                    ? "bg-red-50 text-red-700 border-red-100"
+                    : summary.usagePercentage >=
+                      80
+                      ? "bg-yellow-50 text-yellow-700 border-yellow-100"
+                      : "bg-blue-50 text-blue-700 border-blue-100"
+                  }`}
+              >
+                {summary.usagePercentage >= 95
+                  ? "Critical Usage"
+                  : summary.usagePercentage >=
+                    80
+                    ? "Warning Usage"
+                    : "Healthy Usage"}
+              </span>
+            </div>
           </div>
-
-          <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full ${storagePercent >= 95
-                  ? 'bg-red-500'
-                  : storagePercent >= 80
-                    ? 'bg-amber-500'
-                    : 'bg-blue-600'
-                }`}
-              style={{ width: `${Math.min(storagePercent, 100)}%` }}
-            ></div>
-          </div>
-
-          <p className="text-xs text-slate-400 mt-2">
-            {formatSize(summary.storageUsed)} used from{' '}
-            {formatSize(summary.storageLimit)} available storage.
-          </p>
         </div>
       </section>
     </div>
   );
 }
 
-function DashboardCard({ title, value, subtitle, icon, color }) {
-  const colorClasses = {
-    blue: 'bg-blue-50 text-blue-600',
-    indigo: 'bg-indigo-50 text-indigo-600',
-    amber: 'bg-amber-50 text-amber-600',
-  };
-
+function DashboardCard({
+  title,
+  value,
+  subtitle,
+}) {
   return (
-    <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6">
-      <div
-        className={`w-12 h-12 rounded-xl flex items-center justify-center ${colorClasses[color]}`}
-      >
-        {icon === 'file' && (
-          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-          </svg>
-        )}
-
-        {icon === 'folder' && (
-          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7a2 2 0 012-2h5l2 2h7a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
-          </svg>
-        )}
-
-        {icon === 'storage' && (
-          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7c0 1.657 3.582 3 8 3s8-1.343 8-3-3.582-3-8-3-8 1.343-8 3z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 1.657 3.582 3 8 3s8-1.343 8-3V7" />
-          </svg>
-        )}
-      </div>
-
-      <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mt-6">
+    <div className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
+      <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
         {title}
       </p>
 
-      <h3 className="text-3xl font-bold text-slate-900 mt-2">
+      <h3 className="mt-3 text-[28px] font-bold tracking-tight text-slate-900">
         {value}
       </h3>
 
-      <p className="text-sm text-slate-500 mt-2">
+      <p className="mt-2 text-[12px] text-slate-500">
         {subtitle}
       </p>
     </div>
