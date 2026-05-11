@@ -25,47 +25,52 @@ export default function CreateFolderModal({ isOpen, onClose, onCreate }) {
     };
 
     return (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center px-4">
-            <div className="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-md">
-                <div className="px-6 py-5 border-b border-slate-200 flex items-center justify-between">
+        <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-md flex items-center justify-center px-4 animate-in fade-in duration-300">
+            <div className="bg-white rounded-[40px] shadow-2xl shadow-slate-900/20 w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-300">
+                <div className="px-8 sm:px-10 py-8 border-b border-slate-50 flex items-center justify-between bg-slate-50/50">
                     <div>
-                        <h2 className="text-lg font-bold text-slate-900">
-                            Create New Folder
+                        <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+                            Create <span className="text-blue-600">Sector</span>
                         </h2>
-                        <p className="text-sm text-slate-500 mt-1">
-                            Add a folder to organize company documents.
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mt-1">
+                            Sector Initialisation
                         </p>
                     </div>
 
                     <button
                         onClick={onClose}
-                        className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg"
+                        className="w-10 h-10 rounded-full bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-900 hover:border-slate-200 transition-all shadow-sm"
                     >
                         ✕
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-6 space-y-5">
-                    <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-2">
-                            Folder Name
+                <form onSubmit={handleSubmit} className="p-8 sm:px-10 sm:pb-10 space-y-8">
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
+                            Sector Identity (Folder Name)
                         </label>
 
-                        <input
-                            type="text"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder="Example: Contracts"
-                            className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            autoFocus
-                        />
+                        <div className="relative">
+                            <div className="absolute left-5 top-1/2 -translate-y-1/2 text-xl pointer-events-none">
+                                📁
+                            </div>
+                            <input
+                                type="text"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                placeholder="Example: Legal Records"
+                                className="w-full pl-14 pr-5 h-16 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:bg-white focus:border-blue-500 transition-all"
+                                autoFocus
+                            />
+                        </div>
                     </div>
 
-                    <div className="flex items-center justify-end gap-3 pt-2">
+                    <div className="flex items-center gap-4 pt-2">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-4 py-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50"
+                            className="flex-1 h-14 rounded-2xl border border-slate-200 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-all"
                         >
                             Cancel
                         </button>
@@ -73,9 +78,9 @@ export default function CreateFolderModal({ isOpen, onClose, onCreate }) {
                         <button
                             type="submit"
                             disabled={creating}
-                            className="px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 disabled:opacity-60"
+                            className="flex-2 h-14 rounded-2xl bg-blue-600 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-blue-700 disabled:opacity-60 transition-all shadow-xl shadow-blue-600/25 active:scale-95 px-8"
                         >
-                            {creating ? 'Creating...' : 'Create Folder'}
+                            {creating ? 'Initialising...' : 'Deploy Sector'}
                         </button>
                     </div>
                 </form>

@@ -29,153 +29,150 @@ export default function ActivityPage() {
 
     const formatDate = (value) => {
         if (!value) return "-";
-        return new Date(value).toLocaleString();
+        return new Date(value).toLocaleString(undefined, {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
     };
 
     if (loading) {
         return (
-            <div className="px-4 py-5">
-                <h1 className="text-xl sm:text-2xl font-semibold text-slate-900">
-                    Activity
-                </h1>
-
-                <p className="mt-4 text-sm text-slate-500">
-                    Loading activity logs...
-                </p>
+            <div className="p-8 text-center text-slate-500 animate-pulse">
+                <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                <p className="text-xs font-black uppercase tracking-[0.2em]">Initialising Activity Logs...</p>
             </div>
         );
     }
 
     return (
-        <div className="px-4 py-4 sm:px-5 sm:py-5 max-w-[1500px] mx-auto bg-[#f8fafc] min-h-full overflow-x-hidden">
+        <div className="w-full max-w-full px-4 sm:px-6 lg:px-8 py-6 lg:py-8 bg-[#f8fafc] min-h-full overflow-x-hidden">
             {/* Header */}
-            <div className="mb-5">
-                <h1 className="text-[24px] sm:text-[30px] font-bold tracking-tight text-slate-900">
-                    Activity
-                </h1>
+            <div className="mb-8 lg:mb-10">
+                <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
+                    <div className="space-y-1">
+                        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-slate-900 leading-tight">
+                            System <span className="text-blue-600">Activity</span>
+                        </h1>
 
-                <p className="mt-1 text-[12px] sm:text-[13px] text-slate-500">
-                    View global file, folder, user, and system activity logs.
-                </p>
+                        <p className="text-sm sm:text-base text-slate-500 font-medium">
+                            Global audit trail for files, users, and repository events.
+                        </p>
+                    </div>
+
+                    <button
+                        onClick={loadActivities}
+                        className="w-full sm:w-auto h-11 px-6 rounded-xl bg-white border border-slate-200 text-xs font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 hover:border-blue-300 hover:text-blue-600 transition-all shadow-sm active:scale-95"
+                    >
+                        Refresh Logs
+                    </button>
+                </div>
             </div>
 
             {/* Error */}
             {error && (
-                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[12px] text-red-700 mb-5">
-                    {error}
+                <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3.5 text-sm text-red-700 font-bold mb-8 animate-in fade-in slide-in-from-top-2">
+                    <span className="mr-2">⚠️</span> {error}
                 </div>
             )}
 
-            {/* Activity */}
-            <section className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
-                <div className="border-b border-slate-200 px-4 sm:px-5 py-4 flex items-center justify-between">
+            {/* Activity List Card */}
+            <section className="rounded-[32px] border border-slate-200 bg-white overflow-hidden shadow-xl shadow-slate-200/40">
+                <div className="border-b border-slate-100 px-6 sm:px-8 py-5 sm:py-6 flex items-center justify-between bg-slate-50/30">
                     <div>
-                        <h2 className="text-[16px] sm:text-[18px] font-semibold text-slate-900">
-                            Recent Activity
+                        <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
+                            Recent Events
                         </h2>
 
-                        <p className="text-[11px] sm:text-[12px] text-slate-400 mt-1">
-                            {activities.length} activity logs
+                        <p className="text-xs sm:text-sm text-slate-400 font-semibold mt-0.5">
+                            Showing the latest {activities.length} entries
                         </p>
+                    </div>
+
+                    <div className="hidden sm:block">
+                        <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-[10px] font-black text-blue-700 uppercase tracking-widest">
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                            Live Feed
+                        </span>
                     </div>
                 </div>
 
                 {activities.length === 0 ? (
-                    <div className="px-5 py-14 text-center">
-                        <div className="flex flex-col items-center">
-                            <div className="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-xl mb-3">
-                                ⚡
-                            </div>
-
-                            <p className="text-[13px] font-semibold text-slate-700">
-                                No activity logs found
-                            </p>
-
-                            <p className="text-[12px] text-slate-400 mt-1">
-                                System activity will appear here.
-                            </p>
+                    <div className="px-8 py-20 text-center">
+                        <div className="w-20 h-20 bg-slate-50 rounded-[2rem] flex items-center justify-center text-4xl mx-auto mb-6 grayscale opacity-40">
+                            ⚡
                         </div>
+                        <h3 className="text-slate-900 font-black text-lg mb-1">Silence in the system</h3>
+                        <p className="text-slate-500 font-medium text-sm">No activity recorded yet.</p>
                     </div>
                 ) : (
                     <>
-                        {/* Desktop Table */}
-                        <div className="hidden lg:block overflow-x-auto">
-                            <table className="w-full border-collapse">
-                                <thead className="bg-slate-50 border-b border-slate-200">
-                                    <tr className="text-[10px] uppercase tracking-[0.16em] text-slate-400">
-                                        <th className="px-5 py-3 text-left font-bold">
-                                            Action
-                                        </th>
-
-                                        <th className="px-5 py-3 text-left font-bold">
-                                            User
-                                        </th>
-
-                                        <th className="px-5 py-3 text-left font-bold">
-                                            Details
-                                        </th>
-
-                                        <th className="px-5 py-3 text-left font-bold">
-                                            Target
-                                        </th>
-
-                                        <th className="px-5 py-3 text-left font-bold">
-                                            Date
-                                        </th>
+                        {/* Desktop Table View */}
+                        <div className="hidden lg:block overflow-x-auto custom-scrollbar">
+                            <table className="w-full border-collapse min-w-[720px]">
+                                <thead className="bg-slate-50/50 border-b border-slate-100">
+                                    <tr className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-black">
+                                        <th className="px-8 py-4 text-left">Action</th>
+                                        <th className="px-8 py-4 text-left">Initiator</th>
+                                        <th className="px-8 py-4 text-left">Description</th>
+                                        <th className="px-8 py-4 text-left">Context</th>
+                                        <th className="px-8 py-4 text-right">Timestamp</th>
                                     </tr>
                                 </thead>
 
-                                <tbody className="divide-y divide-slate-100">
+                                <tbody className="divide-y divide-slate-50">
                                     {activities.map((item) => (
                                         <tr
                                             key={item._id}
-                                            className="hover:bg-slate-50 transition-all"
+                                            className="group hover:bg-slate-50/80 transition-all duration-300"
                                         >
-                                            <td className="px-5 py-4">
+                                            <td className="px-8 py-5">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 text-sm">
-                                                        ⚡
+                                                    <div className="w-10 h-10 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shadow-sm transition-transform group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white group-hover:rotate-12 duration-500">
+                                                        <span className="text-lg">⚡</span>
                                                     </div>
-
                                                     <div>
-                                                        <p className="text-[13px] font-semibold text-slate-800">
-                                                            {item.action || "-"}
+                                                        <p className="text-sm font-black text-slate-900 leading-none">
+                                                            {item.action || "Generic Event"}
                                                         </p>
-
-                                                        <p className="text-[11px] text-slate-400 mt-1">
-                                                            System Activity
+                                                        <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1.5">
+                                                            ID: {item._id?.slice(-6)}
                                                         </p>
                                                     </div>
                                                 </div>
                                             </td>
 
-                                            <td className="px-5 py-4">
-                                                <div>
-                                                    <p className="text-[13px] font-semibold text-slate-700">
-                                                        {item.userId?.name || "-"}
-                                                    </p>
-
-                                                    <p className="text-[11px] text-slate-400 mt-1">
-                                                        User
+                                            <td className="px-8 py-5">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-black text-slate-600 border border-slate-200">
+                                                        {(item.userId?.name || "S").charAt(0).toUpperCase()}
+                                                    </div>
+                                                    <p className="text-sm font-bold text-slate-700">
+                                                        {item.userId?.name || "System Process"}
                                                     </p>
                                                 </div>
                                             </td>
 
-                                            <td className="px-5 py-4 max-w-[420px]">
-                                                <p className="text-[12px] text-slate-600 leading-relaxed">
-                                                    {item.message || "-"}
+                                            <td className="px-8 py-5 max-w-[400px]">
+                                                <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed italic">
+                                                    "{item.message || "No detailed log available."}"
                                                 </p>
                                             </td>
 
-                                            <td className="px-5 py-4">
-                                                <span className="inline-flex items-center rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-semibold text-slate-700">
-                                                    {item.targetType || "-"}
+                                            <td className="px-8 py-5">
+                                                <span className="inline-flex items-center px-3 py-1 rounded-lg bg-slate-100 border border-slate-200 text-[10px] font-black text-slate-600 uppercase tracking-widest group-hover:bg-blue-50 group-hover:border-blue-100 group-hover:text-blue-600 transition-colors">
+                                                    {item.targetType || "System"}
                                                 </span>
                                             </td>
 
-                                            <td className="px-5 py-4 whitespace-nowrap">
-                                                <p className="text-[12px] text-slate-500">
-                                                    {formatDate(item.createdAt)}
+                                            <td className="px-8 py-5 text-right whitespace-nowrap">
+                                                <p className="text-xs font-black text-slate-900 tracking-tight">
+                                                    {formatDate(item.createdAt).split(',')[0]}
+                                                </p>
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+                                                    {formatDate(item.createdAt).split(',')[1]}
                                                 </p>
                                             </td>
                                         </tr>
@@ -184,47 +181,44 @@ export default function ActivityPage() {
                             </table>
                         </div>
 
-                        {/* Mobile Cards */}
+                        {/* Mobile & Tablet Card List */}
                         <div className="lg:hidden divide-y divide-slate-100">
                             {activities.map((item) => (
                                 <div
                                     key={item._id}
-                                    className="p-4 hover:bg-slate-50 transition-all"
+                                    className="p-6 hover:bg-slate-50 transition-all group"
                                 >
-                                    <div className="flex items-start gap-3">
-                                        <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 text-sm shrink-0">
+                                    <div className="flex items-start gap-4">
+                                        <div className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-xl shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-colors">
                                             ⚡
                                         </div>
 
-                                        <div className="min-w-0 flex-1">
-                                            <div className="flex flex-wrap items-center gap-2">
-                                                <h3 className="text-[13px] font-semibold text-slate-800 break-words">
-                                                    {item.action || "-"}
+                                        <div className="min-w-0 flex-1 space-y-3">
+                                            <div className="flex items-center justify-between gap-2">
+                                                <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight truncate">
+                                                    {item.action || "Generic Event"}
                                                 </h3>
 
-                                                <span className="inline-flex items-center rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold text-slate-700">
-                                                    {item.targetType || "-"}
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-blue-50 border border-blue-100 text-[9px] font-black text-blue-700 uppercase tracking-widest">
+                                                    {item.targetType || "System"}
                                                 </span>
                                             </div>
 
-                                            <p className="mt-2 text-[12px] text-slate-600 break-words leading-relaxed">
-                                                {item.message || "-"}
+                                            <p className="text-sm text-slate-600 font-medium leading-relaxed border-l-4 border-slate-100 pl-4 py-1 italic">
+                                                {item.message || "No detailed log."}
                                             </p>
 
-                                            <div className="mt-3 flex flex-col gap-1">
-                                                <p className="text-[11px] text-slate-500">
-                                                    <span className="font-semibold text-slate-700">
-                                                        User:
-                                                    </span>{" "}
-                                                    {item.userId?.name || "-"}
-                                                </p>
+                                            <div className="pt-2 flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-[8px] font-black text-slate-500 uppercase">
+                                                        {(item.userId?.name || "S").charAt(0)}
+                                                    </div>
+                                                    <span className="text-[10px] font-bold text-slate-500">{item.userId?.name || "System"}</span>
+                                                </div>
 
-                                                <p className="text-[11px] text-slate-500 break-words">
-                                                    <span className="font-semibold text-slate-700">
-                                                        Date:
-                                                    </span>{" "}
-                                                    {formatDate(item.createdAt)}
-                                                </p>
+                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                                    {formatDate(item.createdAt).split(',')[0]}
+                                                </span>
                                             </div>
                                         </div>
                                     </div>

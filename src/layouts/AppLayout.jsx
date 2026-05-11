@@ -7,15 +7,20 @@ export default function AppLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-900">
-      <div className="flex min-h-screen">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-900 selection:bg-blue-100 selection:text-blue-700 overflow-x-hidden">
+      <div className="flex min-h-screen relative overflow-x-hidden">
+        {/* Sidebar wrapper */}
         <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
 
-        <div className="flex-1 flex flex-col min-w-0 w-full">
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col min-w-0 w-full relative z-0">
           <Topbar onMenuClick={() => setMobileOpen(true)} />
 
-          <main className="flex-1 bg-slate-100 overflow-x-hidden overflow-y-auto pt-4 md:pt-0">
-            <Outlet />
+          <main className="flex-1 overflow-x-hidden overflow-y-auto">
+            {/* Page content wrapper with responsive padding */}
+            <div className="min-h-full">
+              <Outlet />
+            </div>
           </main>
         </div>
       </div>

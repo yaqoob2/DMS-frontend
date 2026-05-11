@@ -60,16 +60,18 @@ export default function DeletedItems() {
 
     const formatDate = (value) => {
         if (!value) return "-";
-        return new Date(value).toLocaleString();
+        return new Date(value).toLocaleDateString(undefined, {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
     };
 
     const formatSize = (bytes) => {
         if (!bytes && bytes !== 0) return "-";
-
         const kb = bytes / 1024;
         const mb = kb / 1024;
         const gb = mb / 1024;
-
         if (gb >= 1) return `${gb.toFixed(2)} GB`;
         if (mb >= 1) return `${mb.toFixed(2)} MB`;
         if (kb >= 1) return `${kb.toFixed(2)} KB`;
@@ -78,136 +80,105 @@ export default function DeletedItems() {
 
     if (loading) {
         return (
-            <div className="p-6">
-                <h1 className="text-2xl font-semibold text-slate-900">Deleted Items</h1>
-                <p className="mt-4 text-slate-500">Loading deleted items...</p>
+            <div className="p-8 text-center text-slate-500 animate-pulse">
+                <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                <p className="text-xs font-black uppercase tracking-[0.2em]">Initialising Recovery Archive...</p>
             </div>
         );
     }
 
     return (
-        <div className="p-5 max-w-[1500px] mx-auto bg-[#f8fafc] min-h-full">
+        <div className="w-full max-w-full px-4 sm:px-6 lg:px-8 py-6 lg:py-8 bg-[#f8fafc] min-h-full overflow-x-hidden">
             {/* Header */}
-            <div className="mb-5">
-                <h1 className="text-[30px] font-bold tracking-tight text-slate-900">
-                    Deleted Items
+            <div className="mb-8 lg:mb-10">
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-slate-900 leading-tight">
+                    Recovery <span className="text-blue-600">Archive</span>
                 </h1>
 
-                <p className="mt-1 text-[13px] text-slate-500">
-                    Restore deleted files and folders from the recovery archive.
+                <p className="mt-2 text-sm sm:text-base text-slate-500 font-medium">
+                    Restoration vault for items deleted within the last 30 days.
                 </p>
             </div>
 
             {/* Error */}
             {error && (
-                <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-[12px] text-red-700 mb-5">
-                    {error}
+                <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3.5 text-sm text-red-700 font-bold mb-8">
+                    <span className="mr-2">⚠️</span> {error}
                 </div>
             )}
 
-            {/* Deleted Files */}
-            <section className="rounded-md border border-slate-200 bg-white overflow-hidden shadow-sm mb-6">
-                <div className="border-b border-slate-200 px-5 py-4 flex items-center justify-between">
+            {/* Deleted Files Table */}
+            <section className="rounded-[32px] border border-slate-200 bg-white overflow-hidden shadow-xl shadow-slate-200/40 mb-8 lg:mb-12">
+                <div className="border-b border-slate-100 px-6 sm:px-8 py-5 sm:py-6 flex items-center justify-between bg-slate-50/30">
                     <div>
-                        <h2 className="text-[18px] font-semibold text-slate-900">
+                        <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
                             Deleted Files
                         </h2>
-
-                        <p className="text-[12px] text-slate-400 mt-1">
-                            {deletedFiles.length} deleted files
+                        <p className="text-xs sm:text-sm text-slate-400 font-semibold mt-0.5">
+                            {deletedFiles.length} item{deletedFiles.length !== 1 ? 's' : ''} available for recovery
                         </p>
                     </div>
                 </div>
 
                 {deletedFiles.length === 0 ? (
-                    <div className="px-5 py-12 text-[13px] text-slate-500">
-                        No deleted files found.
+                    <div className="px-8 py-16 text-center">
+                        <p className="text-slate-400 font-black uppercase tracking-widest text-[10px] sm:text-xs">
+                            No files in the recovery archive.
+                        </p>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full border-collapse">
-                            <thead className="bg-slate-50 border-b border-slate-200">
-                                <tr className="text-[10px] uppercase tracking-[0.16em] text-slate-400">
-                                    <th className="px-5 py-3 text-left font-bold">
-                                        File Name
-                                    </th>
-
-                                    <th className="px-5 py-3 text-left font-bold">
-                                        Type
-                                    </th>
-
-                                    <th className="px-5 py-3 text-left font-bold">
-                                        Size
-                                    </th>
-
-                                    <th className="px-5 py-3 text-left font-bold">
-                                        Deleted
-                                    </th>
-
-                                    <th className="px-5 py-3 text-right font-bold">
-                                        Action
-                                    </th>
+                    <div className="w-full overflow-x-auto custom-scrollbar">
+                        <table className="w-full border-collapse min-w-[720px]">
+                            <thead className="bg-slate-50/50 border-b border-slate-100">
+                                <tr className="text-[10px] sm:text-xs uppercase tracking-[0.2em] text-slate-400 font-black">
+                                    <th className="px-6 sm:px-8 py-4 text-left">Document Details</th>
+                                    <th className="px-6 sm:px-8 py-4 text-left">MIME Type</th>
+                                    <th className="px-6 sm:px-8 py-4 text-left">Size</th>
+                                    <th className="px-6 sm:px-8 py-4 text-left">Deleted Date</th>
+                                    <th className="px-6 sm:px-8 py-4 text-right">Actions</th>
                                 </tr>
                             </thead>
 
-                            <tbody className="divide-y divide-slate-100">
+                            <tbody className="divide-y divide-slate-50">
                                 {deletedFiles.map((file) => (
-                                    <tr
-                                        key={file._id}
-                                        className="hover:bg-slate-50 transition-all"
-                                    >
-                                        {/* File */}
-                                        <td className="px-5 py-4">
-                                            <div>
-                                                <p className="text-[13px] font-semibold text-slate-800">
-                                                    {file.originalName ||
-                                                        file.name ||
-                                                        file.fileName ||
-                                                        "Untitled file"}
-                                                </p>
-
-                                                <p className="text-[11px] text-slate-400 mt-1">
-                                                    Archived Document
-                                                </p>
+                                    <tr key={file._id} className="group hover:bg-slate-50/80 transition-all">
+                                        <td className="px-6 sm:px-8 py-5">
+                                            <div className="flex items-center gap-3 sm:gap-4">
+                                                <div className="w-10 h-10 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-xl shadow-sm group-hover:scale-110 group-hover:rotate-6 transition-transform">
+                                                    📄
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm sm:text-base font-bold text-slate-900 leading-none">
+                                                        {file.originalName || file.name || "Untitled Asset"}
+                                                    </p>
+                                                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-wider mt-1.5">
+                                                        Archived File
+                                                    </p>
+                                                </div>
                                             </div>
                                         </td>
 
-                                        {/* Type */}
-                                        <td className="px-5 py-4">
-                                            <span className="inline-flex items-center rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-semibold text-slate-700">
-                                                {file.mimeType ||
-                                                    file.type ||
-                                                    "-"}
+                                        <td className="px-6 sm:px-8 py-5">
+                                            <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200 text-[10px] font-black text-slate-600 uppercase tracking-widest">
+                                                {file.mimeType?.split('/')[1] || "DOC"}
                                             </span>
                                         </td>
 
-                                        {/* Size */}
-                                        <td className="px-5 py-4 text-[12px] text-slate-600">
+                                        <td className="px-6 sm:px-8 py-5 text-xs sm:text-sm text-slate-600 font-bold">
                                             {formatSize(file.size)}
                                         </td>
 
-                                        {/* Deleted Date */}
-                                        <td className="px-5 py-4 text-[12px] text-slate-500 whitespace-nowrap">
-                                            {formatDate(
-                                                file.deletedAt ||
-                                                file.updatedAt
-                                            )}
+                                        <td className="px-6 sm:px-8 py-5 text-xs sm:text-sm text-slate-500 font-semibold whitespace-nowrap">
+                                            {formatDate(file.deletedAt || file.updatedAt)}
                                         </td>
 
-                                        {/* Restore */}
-                                        <td className="px-5 py-4 text-right">
+                                        <td className="px-6 sm:px-8 py-5 text-right">
                                             <button
-                                                onClick={() =>
-                                                    restoreFile(file._id)
-                                                }
-                                                disabled={
-                                                    restoringId === file._id
-                                                }
-                                                className="h-9 px-4 rounded-md bg-blue-600 text-white text-[12px] font-semibold hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 transition-all"
+                                                onClick={() => restoreFile(file._id)}
+                                                disabled={restoringId === file._id}
+                                                className="h-10 px-6 rounded-xl bg-blue-600 text-white text-[10px] sm:text-xs font-black uppercase tracking-widest hover:bg-blue-700 disabled:opacity-50 transition-all shadow-lg shadow-blue-500/20 active:scale-95"
                                             >
-                                                {restoringId === file._id
-                                                    ? "Restoring..."
-                                                    : "Restore"}
+                                                {restoringId === file._id ? "Processing" : "Restore"}
                                             </button>
                                         </td>
                                     </tr>
@@ -218,85 +189,66 @@ export default function DeletedItems() {
                 )}
             </section>
 
-            {/* Deleted Folders */}
-            <section className="rounded-md border border-slate-200 bg-white overflow-hidden shadow-sm">
-                <div className="border-b border-slate-200 px-5 py-4 flex items-center justify-between">
+            {/* Deleted Folders Table */}
+            <section className="rounded-[32px] border border-slate-200 bg-white overflow-hidden shadow-xl shadow-slate-200/40">
+                <div className="border-b border-slate-100 px-6 sm:px-8 py-5 sm:py-6 flex items-center justify-between bg-slate-50/30">
                     <div>
-                        <h2 className="text-[18px] font-semibold text-slate-900">
+                        <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
                             Deleted Folders
                         </h2>
-
-                        <p className="text-[12px] text-slate-400 mt-1">
-                            {deletedFolders.length} deleted folders
+                        <p className="text-xs sm:text-sm text-slate-400 font-semibold mt-0.5">
+                            {deletedFolders.length} collection{deletedFolders.length !== 1 ? 's' : ''} available
                         </p>
                     </div>
                 </div>
 
                 {deletedFolders.length === 0 ? (
-                    <div className="px-5 py-12 text-[13px] text-slate-500">
-                        No deleted folders found.
+                    <div className="px-8 py-16 text-center">
+                        <p className="text-slate-400 font-black uppercase tracking-widest text-[10px] sm:text-xs">
+                            No folders in the recovery archive.
+                        </p>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full border-collapse">
-                            <thead className="bg-slate-50 border-b border-slate-200">
-                                <tr className="text-[10px] uppercase tracking-[0.16em] text-slate-400">
-                                    <th className="px-5 py-3 text-left font-bold">
-                                        Folder Name
-                                    </th>
-
-                                    <th className="px-5 py-3 text-left font-bold">
-                                        Deleted
-                                    </th>
-
-                                    <th className="px-5 py-3 text-right font-bold">
-                                        Action
-                                    </th>
+                    <div className="w-full overflow-x-auto custom-scrollbar">
+                        <table className="w-full border-collapse min-w-[640px]">
+                            <thead className="bg-slate-50/50 border-b border-slate-100">
+                                <tr className="text-[10px] sm:text-xs uppercase tracking-[0.2em] text-slate-400 font-black">
+                                    <th className="px-6 sm:px-8 py-4 text-left">Folder Details</th>
+                                    <th className="px-6 sm:px-8 py-4 text-left">Deleted Date</th>
+                                    <th className="px-6 sm:px-8 py-4 text-right">Actions</th>
                                 </tr>
                             </thead>
 
-                            <tbody className="divide-y divide-slate-100">
+                            <tbody className="divide-y divide-slate-50">
                                 {deletedFolders.map((folder) => (
-                                    <tr
-                                        key={folder._id}
-                                        className="hover:bg-slate-50 transition-all"
-                                    >
-                                        {/* Folder */}
-                                        <td className="px-5 py-4">
-                                            <div>
-                                                <p className="text-[13px] font-semibold text-slate-800">
-                                                    {folder.name ||
-                                                        "Untitled folder"}
-                                                </p>
-
-                                                <p className="text-[11px] text-slate-400 mt-1">
-                                                    Archived Folder
-                                                </p>
+                                    <tr key={folder._id} className="group hover:bg-slate-50/80 transition-all">
+                                        <td className="px-6 sm:px-8 py-5">
+                                            <div className="flex items-center gap-3 sm:gap-4">
+                                                <div className="w-10 h-10 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-xl shadow-sm group-hover:scale-110 group-hover:-rotate-6 transition-transform">
+                                                    📁
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm sm:text-base font-bold text-slate-900 leading-none">
+                                                        {folder.name || "Untitled Collection"}
+                                                    </p>
+                                                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-wider mt-1.5">
+                                                        Archived Folder
+                                                    </p>
+                                                </div>
                                             </div>
                                         </td>
 
-                                        {/* Deleted Date */}
-                                        <td className="px-5 py-4 text-[12px] text-slate-500 whitespace-nowrap">
-                                            {formatDate(
-                                                folder.deletedAt ||
-                                                folder.updatedAt
-                                            )}
+                                        <td className="px-6 sm:px-8 py-5 text-xs sm:text-sm text-slate-500 font-semibold whitespace-nowrap">
+                                            {formatDate(folder.deletedAt || folder.updatedAt)}
                                         </td>
 
-                                        {/* Restore */}
-                                        <td className="px-5 py-4 text-right">
+                                        <td className="px-6 sm:px-8 py-5 text-right">
                                             <button
-                                                onClick={() =>
-                                                    restoreFolder(folder._id)
-                                                }
-                                                disabled={
-                                                    restoringId === folder._id
-                                                }
-                                                className="h-9 px-4 rounded-md bg-blue-600 text-white text-[12px] font-semibold hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 transition-all"
+                                                onClick={() => restoreFolder(folder._id)}
+                                                disabled={restoringId === folder._id}
+                                                className="h-10 px-6 rounded-xl bg-blue-600 text-white text-[10px] sm:text-xs font-black uppercase tracking-widest hover:bg-blue-700 disabled:opacity-50 transition-all shadow-lg shadow-blue-500/20 active:scale-95"
                                             >
-                                                {restoringId === folder._id
-                                                    ? "Restoring..."
-                                                    : "Restore"}
+                                                {restoringId === folder._id ? "Processing" : "Restore"}
                                             </button>
                                         </td>
                                     </tr>

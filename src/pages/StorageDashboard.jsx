@@ -37,7 +37,7 @@ export default function StorageDashboard() {
             setMonthlyActivity(activityRes.data?.data || activityRes.data || []);
         } catch (err) {
             console.error(err);
-            setError("Failed to load storage dashboard.");
+            setError("Failed to load repository metrics.");
         } finally {
             setLoading(false);
         }
@@ -49,9 +49,9 @@ export default function StorageDashboard() {
 
     if (loading) {
         return (
-            <div className="p-6">
-                <h1 className="text-2xl font-semibold text-slate-900">Storage</h1>
-                <p className="mt-4 text-slate-500">Loading storage data...</p>
+            <div className="p-8 text-center text-slate-500 animate-pulse">
+                <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em]">Calculating System Metrics...</p>
             </div>
         );
     }
@@ -60,173 +60,164 @@ export default function StorageDashboard() {
     const limit = summary?.limitBytes || 0;
     const remaining = summary?.remainingBytes || 0;
     const percentage = Number(summary?.usagePercentage || 0);
-    const status = summary?.status || "normal";
+    const status = summary?.status || "OPTIMAL";
+
     return (
-        <div className="p-5 max-w-[1500px] mx-auto bg-[#f8fafc] min-h-full">
-            {/* Header */}
-            <div className="mb-5">
-                <h1 className="text-[30px] font-bold tracking-tight text-slate-900">
-                    Storage Dashboard
+        <div className="w-full max-w-full px-4 sm:px-6 lg:px-8 py-6 lg:py-8 bg-[#f8fafc] min-h-full overflow-x-hidden">
+            {/* Header Section */}
+            <div className="mb-8 lg:mb-12">
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-slate-900 leading-tight">
+                    System <span className="text-blue-600">Metrics</span>
                 </h1>
 
-                <p className="mt-1 text-[13px] text-slate-500">
-                    Monitor storage usage, largest files, and monthly repository activity.
+                <p className="mt-2 text-sm sm:text-base text-slate-500 font-medium">
+                    Monitor real-time storage allocation, payload distribution, and archive activity.
                 </p>
             </div>
 
-            {/* Error */}
+            {/* Error Notification */}
             {error && (
-                <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-[12px] text-red-700 mb-5">
-                    {error}
+                <div className="rounded-2xl border border-red-100 bg-red-50 px-6 py-4 text-xs sm:text-sm text-red-600 font-bold mb-8 animate-in fade-in slide-in-from-top-4">
+                    <span className="mr-2">⚠️</span> {error}
                 </div>
             )}
 
-            {/* Storage Summary */}
-            <section className="rounded-md border border-slate-200 bg-white p-5 shadow-sm mb-6">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                    {/* Left */}
-                    <div>
-                        <p className="text-[11px] uppercase tracking-[0.16em] text-slate-400 font-bold mb-2">
-                            Storage Usage
+            {/* Storage Summary Section */}
+            <section className="rounded-[32px] border border-slate-200 bg-white p-6 sm:p-10 shadow-xl shadow-slate-200/40 mb-8 lg:mb-12 relative overflow-hidden">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-10 relative z-10">
+                    {/* Left: Raw Data */}
+                    <div className="flex-1">
+                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-4">
+                            Storage Allocation
                         </p>
 
-                        <h2 className="text-[28px] font-bold text-slate-900">
-                            {formatSize(used)}
-                        </h2>
+                        <div className="flex flex-col sm:flex-row sm:items-end gap-2 sm:gap-4 mb-2">
+                            <h2 className="text-4xl sm:text-5xl font-black text-slate-900 leading-none">
+                                {formatSize(used).split(' ')[0]}
+                                <span className="text-xl sm:text-2xl text-slate-400 ml-1 font-bold">
+                                    {formatSize(used).split(' ')[1]}
+                                </span>
+                            </h2>
+                            <div className="h-6 w-px bg-slate-200 hidden sm:block mb-1"></div>
+                            <p className="text-sm font-black text-blue-600 uppercase tracking-widest mb-1">
+                                of {formatSize(limit)} Total Capacity
+                            </p>
+                        </div>
 
-                        <p className="mt-1 text-[13px] text-slate-500">
-                            of {formatSize(limit)} used
-                        </p>
-
-                        <p className="mt-2 text-[12px] text-slate-400">
-                            Remaining: {formatSize(remaining)}
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                            Available Buffer: <span className="text-slate-900">{formatSize(remaining)}</span>
                         </p>
                     </div>
 
-                    {/* Right */}
-                    <div className="min-w-[220px]">
-                        <div className="flex items-center justify-between mb-2">
-                            <span className="text-[12px] font-semibold text-slate-500 uppercase tracking-wide">
-                                Usage
+                    {/* Right: Visual Progress */}
+                    <div className="w-full lg:w-[400px]">
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em]">
+                                Sector Usage
                             </span>
 
-                            <span className="text-[14px] font-bold text-slate-900">
-                                {percentage.toFixed(2)}%
+                            <span className="text-xl font-black text-slate-900">
+                                {percentage.toFixed(1)}%
                             </span>
                         </div>
 
-                        <div className="h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
+                        <div className="h-4 w-full rounded-full bg-slate-100 p-1 shadow-inner">
                             <div
-                                className={`h-full transition-all duration-500 ${percentage >= 95
-                                        ? "bg-red-600"
+                                className={`h-full rounded-full transition-all duration-1000 ease-out shadow-lg ${percentage >= 95
+                                        ? "bg-red-600 shadow-red-500/30"
                                         : percentage >= 80
-                                            ? "bg-yellow-500"
-                                            : "bg-blue-600"
+                                            ? "bg-yellow-500 shadow-yellow-500/30"
+                                            : "bg-blue-600 shadow-blue-500/30"
                                     }`}
                                 style={{
                                     width: `${Math.max(
                                         Math.min(percentage, 100),
-                                        percentage > 0 ? 1 : 0
+                                        percentage > 0 ? 2 : 0
                                     )}%`,
                                 }}
                             />
                         </div>
 
-                        <div className="mt-3">
+                        <div className="mt-6 flex items-center justify-between">
                             <span
-                                className={`inline-flex items-center rounded-md px-2.5 py-1 text-[11px] font-semibold border ${percentage >= 95
+                                className={`inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border ${percentage >= 95
                                         ? "bg-red-50 text-red-700 border-red-100"
                                         : percentage >= 80
                                             ? "bg-yellow-50 text-yellow-700 border-yellow-100"
                                             : "bg-blue-50 text-blue-700 border-blue-100"
                                     }`}
                             >
-                                {status}
+                                <span className={`w-1.5 h-1.5 rounded-full mr-2 ${percentage >= 95 ? "bg-red-600" : percentage >= 80 ? "bg-yellow-600" : "bg-blue-600"}`}></span>
+                                SYSTEM {status.toUpperCase()}
                             </span>
+                            
+                            <button 
+                                onClick={loadStorageData}
+                                className="text-[10px] font-black text-slate-400 hover:text-slate-900 transition-colors uppercase tracking-widest"
+                            >
+                                Refresh Sync
+                            </button>
                         </div>
                     </div>
                 </div>
 
-                {/* Alerts */}
-                {percentage >= 95 && (
-                    <div className="mt-5 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-[12px] text-red-700">
-                        Storage usage is above 95%. Uploads may be restricted soon.
-                    </div>
-                )}
-
-                {percentage >= 80 && percentage < 95 && (
-                    <div className="mt-5 rounded-md border border-yellow-200 bg-yellow-50 px-4 py-3 text-[12px] text-yellow-700">
-                        Storage usage has exceeded 80%.
-                    </div>
-                )}
+                {/* Decorative Background Elements */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50/30 rounded-full blur-3xl -mr-32 -mt-32"></div>
+                <div className="absolute bottom-0 left-0 w-64 h-64 bg-slate-50/50 rounded-full blur-3xl -ml-32 -mb-32"></div>
             </section>
 
-            {/* Largest Files */}
-            <section className="rounded-md border border-slate-200 bg-white overflow-hidden shadow-sm mb-6">
-                <div className="border-b border-slate-200 px-5 py-4 flex items-center justify-between">
-                    <div>
-                        <h2 className="text-[18px] font-semibold text-slate-900">
-                            Largest Files
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 lg:gap-12">
+                {/* Largest Files Section */}
+                <section className="rounded-[32px] border border-slate-200 bg-white overflow-hidden shadow-xl shadow-slate-200/40">
+                    <div className="px-8 py-6 border-b border-slate-100 bg-slate-50/30">
+                        <h2 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em]">
+                            Payload Distribution
                         </h2>
-
-                        <p className="text-[12px] text-slate-400 mt-1">
-                            Top storage-consuming documents
-                        </p>
+                        <p className="text-[14px] font-black text-slate-900 mt-1">High-Consumption Assets</p>
                     </div>
-                </div>
 
-                {largestFiles.length === 0 ? (
-                    <div className="px-5 py-12 text-[13px] text-slate-500 text-center">
-                        No files found.
-                    </div>
-                ) : (
-                    <>
-                        {/* Desktop Table */}
-                        <div className="hidden lg:block overflow-x-auto">
+                    {largestFiles.length === 0 ? (
+                        <div className="px-8 py-16 text-center">
+                            <p className="text-slate-400 font-black uppercase tracking-widest text-xs">No assets identified.</p>
+                        </div>
+                    ) : (
+                        <div className="overflow-x-auto custom-scrollbar">
                             <table className="w-full border-collapse">
-                                <thead className="bg-slate-50 border-b border-slate-200">
-                                    <tr className="text-[10px] uppercase tracking-[0.16em] text-slate-400">
-                                        <th className="px-5 py-3 text-left font-bold">
-                                            File Name
-                                        </th>
-
-                                        <th className="px-5 py-3 text-left font-bold">
-                                            Size
-                                        </th>
-
-                                        <th className="px-5 py-3 text-left font-bold">
-                                            Uploaded
-                                        </th>
+                                <thead>
+                                    <tr className="bg-slate-50/20 text-[9px] uppercase tracking-[0.25em] text-slate-400 font-black border-b border-slate-50">
+                                        <th className="px-8 py-4 text-left">Asset Identity</th>
+                                        <th className="px-8 py-4 text-left">Payload</th>
+                                        <th className="px-8 py-4 text-right">Epoch</th>
                                     </tr>
                                 </thead>
 
-                                <tbody className="divide-y divide-slate-100">
+                                <tbody className="divide-y divide-slate-50">
                                     {largestFiles.map((file) => (
                                         <tr
                                             key={file._id}
-                                            className="hover:bg-slate-50 transition-all"
+                                            className="group hover:bg-slate-50/50 transition-all duration-300"
                                         >
-                                            <td className="px-5 py-4">
+                                            <td className="px-8 py-4">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center text-lg">
+                                                    <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center text-lg group-hover:scale-110 transition-transform duration-500">
                                                         📄
                                                     </div>
-                                                    <div>
-                                                        <p className="text-[13px] font-semibold text-slate-800">
-                                                            {file.originalName || file.name || "Untitled file"}
+                                                    <div className="min-w-0">
+                                                        <p className="text-[13px] font-black text-slate-900 truncate max-w-[200px]">
+                                                            {file.originalName || file.name || "UNNAMED"}
                                                         </p>
-                                                        <p className="text-[11px] text-slate-400 mt-0.5">
-                                                            Document
+                                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                                                            FILE ID: {String(file._id).slice(-6).toUpperCase()}
                                                         </p>
                                                     </div>
                                                 </div>
                                             </td>
 
-                                            <td className="px-5 py-4 text-[12px] text-slate-600">
+                                            <td className="px-8 py-4 text-[11px] font-black text-slate-500 uppercase tracking-widest">
                                                 {formatSize(file.size)}
                                             </td>
 
-                                            <td className="px-5 py-4 text-[12px] text-slate-500 whitespace-nowrap">
+                                            <td className="px-8 py-4 text-right text-[11px] font-black text-slate-400 uppercase tracking-widest">
                                                 {file.createdAt ? new Date(file.createdAt).toLocaleDateString() : "-"}
                                             </td>
                                         </tr>
@@ -234,122 +225,70 @@ export default function StorageDashboard() {
                                 </tbody>
                             </table>
                         </div>
+                    )}
+                </section>
 
-                        {/* Mobile List */}
-                        <div className="lg:hidden divide-y divide-slate-100">
-                            {largestFiles.map((file) => (
-                                <div key={file._id} className="p-4 flex items-center justify-between gap-4">
-                                    <div className="flex items-center gap-3 min-w-0">
-                                        <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-lg shrink-0">
-                                            📄
-                                        </div>
-                                        <div className="min-w-0">
-                                            <p className="text-[13px] font-bold text-slate-900 truncate">
-                                                {file.originalName || file.name || "Untitled file"}
-                                            </p>
-                                            <p className="text-[11px] text-slate-500 mt-0.5">
-                                                {formatSize(file.size)} • {file.createdAt ? new Date(file.createdAt).toLocaleDateString() : "-"}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </>
-                )}
-            </section>
-
-            {/* Monthly Activity */}
-            <section className="rounded-md border border-slate-200 bg-white overflow-hidden shadow-sm">
-                <div className="border-b border-slate-200 px-5 py-4 flex items-center justify-between">
-                    <div>
-                        <h2 className="text-[18px] font-semibold text-slate-900">
-                            Monthly Activity
+                {/* Monthly Activity Section */}
+                <section className="rounded-[32px] border border-slate-200 bg-white overflow-hidden shadow-xl shadow-slate-200/40">
+                    <div className="px-8 py-6 border-b border-slate-100 bg-slate-50/30">
+                        <h2 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em]">
+                            System Throughput
                         </h2>
-
-                        <p className="text-[12px] text-slate-400 mt-1">
-                            Upload and download statistics
-                        </p>
+                        <p className="text-[14px] font-black text-slate-900 mt-1">Operational Flux (Monthly)</p>
                     </div>
-                </div>
 
-                {monthlyActivity.length === 0 ? (
-                    <div className="px-5 py-12 text-[13px] text-slate-500 text-center">
-                        No monthly activity found.
-                    </div>
-                ) : (
-                    <>
-                        {/* Desktop Table */}
-                        <div className="hidden lg:block overflow-x-auto">
+                    {monthlyActivity.length === 0 ? (
+                        <div className="px-8 py-16 text-center">
+                            <p className="text-slate-400 font-black uppercase tracking-widest text-xs">No activity logged.</p>
+                        </div>
+                    ) : (
+                        <div className="overflow-x-auto custom-scrollbar">
                             <table className="w-full border-collapse">
-                                <thead className="bg-slate-50 border-b border-slate-200">
-                                    <tr className="text-[10px] uppercase tracking-[0.16em] text-slate-400">
-                                        <th className="px-5 py-3 text-left font-bold">
-                                            Month
-                                        </th>
-
-                                        <th className="px-5 py-3 text-left font-bold">
-                                            Uploads
-                                        </th>
-
-                                        <th className="px-5 py-3 text-left font-bold">
-                                            Downloads
-                                        </th>
+                                <thead>
+                                    <tr className="bg-slate-50/20 text-[9px] uppercase tracking-[0.25em] text-slate-400 font-black border-b border-slate-50">
+                                        <th className="px-8 py-4 text-left">Temporal Node</th>
+                                        <th className="px-8 py-4 text-left">Ingress</th>
+                                        <th className="px-8 py-4 text-left">Egress</th>
                                     </tr>
                                 </thead>
 
-                                <tbody className="divide-y divide-slate-100">
+                                <tbody className="divide-y divide-slate-50">
                                     {monthlyActivity.map((item, index) => (
                                         <tr
                                             key={index}
-                                            className="hover:bg-slate-50 transition-all"
+                                            className="group hover:bg-slate-50/50 transition-all duration-300"
                                         >
-                                            <td className="px-5 py-4">
-                                                <p className="text-[13px] font-semibold text-slate-800">
-                                                    {item.month || item._id || "-"}
+                                            <td className="px-8 py-4">
+                                                <p className="text-[13px] font-black text-slate-900 uppercase tracking-tight">
+                                                    {item.month || item._id || "UNKNOWN"}
                                                 </p>
                                             </td>
 
-                                            <td className="px-5 py-4">
-                                                <span className="inline-flex items-center rounded-md border border-blue-100 bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700">
-                                                    {item.uploads || 0}
-                                                </span>
+                                            <td className="px-8 py-4">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="w-2 h-2 rounded-full bg-blue-600"></span>
+                                                    <span className="text-[11px] font-black text-blue-600 uppercase tracking-widest">
+                                                        {item.uploads || 0} UPLOADS
+                                                    </span>
+                                                </div>
                                             </td>
 
-                                            <td className="px-5 py-4">
-                                                <span className="inline-flex items-center rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-semibold text-slate-700">
-                                                    {item.downloads || 0}
-                                                </span>
+                                            <td className="px-8 py-4">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="w-2 h-2 rounded-full bg-slate-400"></span>
+                                                    <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
+                                                        {item.downloads || 0} DOWNLOADS
+                                                    </span>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}
                                 </tbody>
                             </table>
                         </div>
-
-                        {/* Mobile Grid */}
-                        <div className="lg:hidden grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
-                            {monthlyActivity.map((item, index) => (
-                                <div key={index} className="p-4 flex items-center justify-between">
-                                    <div className="text-[13px] font-bold text-slate-900">
-                                        {item.month || item._id || "-"}
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <div className="text-center px-3 py-1 rounded-lg bg-blue-50 border border-blue-100">
-                                            <p className="text-[10px] font-bold text-blue-400 uppercase leading-none mb-1">UP</p>
-                                            <p className="text-[12px] font-bold text-blue-700 leading-none">{item.uploads || 0}</p>
-                                        </div>
-                                        <div className="text-center px-3 py-1 rounded-lg bg-slate-50 border border-slate-200">
-                                            <p className="text-[10px] font-bold text-slate-400 uppercase leading-none mb-1">DL</p>
-                                            <p className="text-[12px] font-bold text-slate-700 leading-none">{item.downloads || 0}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </>
-                )}
-            </section>
+                    )}
+                </section>
+            </div>
         </div>
     );
 }

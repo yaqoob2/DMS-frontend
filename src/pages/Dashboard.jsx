@@ -48,115 +48,127 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="px-4 py-5 text-[13px] text-slate-500">
-        Loading dashboard...
+      <div className="px-4 py-8 text-center text-slate-500 animate-pulse">
+        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <p className="text-sm font-bold uppercase tracking-widest">Initialising Dashboard...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-full bg-[#f8fafc] w-full max-w-[1500px] mx-auto px-4 py-4 sm:px-5 sm:py-5 overflow-x-hidden">
-      <section className="mb-5">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-          <div className="min-w-0">
-            <h1 className="text-[22px] sm:text-[26px] lg:text-[30px] font-bold tracking-tight text-slate-900 break-words">
-              Good day, {user?.name || "User"}
+    <div className="min-h-full bg-[#f8fafc] w-full max-w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10 overflow-x-hidden">
+      {/* Welcome Header */}
+      <section className="mb-8 lg:mb-12">
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+          <div className="space-y-1">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-slate-900 leading-tight">
+              Good day, <span className="text-blue-600">{user?.name?.split(' ')[0] || "User"}</span>
             </h1>
 
-            <p className="mt-1 text-[12px] sm:text-[13px] text-slate-500">
+            <p className="text-sm sm:text-base text-slate-500 font-medium">
               Private Company Document Repository overview.
             </p>
           </div>
 
-          <div className="w-fit rounded-md border border-emerald-100 bg-emerald-50 px-3 py-2 sm:px-4">
-            <div className="flex items-center gap-2 whitespace-nowrap">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              <span className="text-[12px] font-semibold text-emerald-700">
-                System Online
-              </span>
-            </div>
+          <div className="inline-flex items-center gap-3 px-4 py-2 rounded-2xl bg-emerald-50 border border-emerald-100 shadow-sm">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span className="text-xs font-black text-emerald-700 uppercase tracking-widest">
+              System Online
+            </span>
           </div>
         </div>
       </section>
 
-      <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 mb-5">
+      {/* Stats Grid */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-8 lg:mb-12">
         <DashboardCard
           title="Total Files"
           value={summary.totalFiles}
           subtitle="Active documents"
+          icon="📄"
         />
 
         <DashboardCard
           title="Total Folders"
           value={summary.totalFolders}
           subtitle="Folder collections"
+          icon="📁"
         />
 
         <DashboardCard
           title="Storage Used"
           value={formatSize(summary.storageUsed)}
-          subtitle={`${summary.usagePercentage.toFixed(2)}% of ${formatSize(
-            summary.storageLimit
-          )}`}
+          subtitle={`${summary.usagePercentage.toFixed(1)}% of ${formatSize(summary.storageLimit)}`}
+          icon="☁️"
         />
       </section>
 
-      <section className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5 shadow-sm">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
-          <div className="min-w-0">
-            <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.14em] text-slate-400 font-bold mb-2">
-              Repository Storage
-            </p>
+      {/* Storage Progress Section */}
+      <section className="rounded-[32px] border border-slate-200 bg-white p-6 sm:p-8 lg:p-10 shadow-xl shadow-slate-200/50">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 lg:gap-16">
+          <div className="flex-1 space-y-4">
+            <div>
+              <p className="text-[10px] sm:text-xs uppercase tracking-[0.2em] text-slate-400 font-black mb-3">
+                Repository Storage
+              </p>
 
-            <h2 className="text-[24px] sm:text-[28px] font-bold text-slate-900">
-              {summary.usagePercentage.toFixed(2)}%
-            </h2>
+              <div className="flex items-baseline gap-2">
+                <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tighter">
+                  {summary.usagePercentage.toFixed(1)}<span className="text-blue-600 text-3xl sm:text-4xl">%</span>
+                </h2>
+              </div>
+            </div>
 
-            <p className="mt-1 text-[12px] sm:text-[13px] text-slate-500 break-words">
-              {formatSize(summary.storageUsed)} used from{" "}
-              {formatSize(summary.storageLimit)}
+            <p className="text-sm sm:text-base text-slate-500 font-medium leading-relaxed max-w-md">
+              {formatSize(summary.storageUsed)} currently occupied out of {formatSize(summary.storageLimit)} allocated capacity.
             </p>
           </div>
 
-          <div className="w-full lg:max-w-[360px]">
-            <div className="mb-2 flex justify-between text-[12px]">
-              <span className="font-semibold text-slate-600">Usage</span>
-              <span className="text-slate-500">
-                {summary.usagePercentage.toFixed(2)}%
+          <div className="flex-1 w-full max-w-xl">
+            <div className="mb-4 flex items-end justify-between">
+              <span className="text-xs sm:text-sm font-black text-slate-900 uppercase tracking-widest">Usage Intensity</span>
+              <span className={`text-sm font-bold ${summary.usagePercentage >= 90 ? 'text-red-600' : 'text-blue-600'}`}>
+                {summary.usagePercentage.toFixed(1)}%
               </span>
             </div>
 
-            <div className="h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
+            <div className="h-4 sm:h-5 w-full rounded-full bg-slate-100 overflow-hidden p-1 shadow-inner">
               <div
-                className={`h-full transition-all duration-500 ${summary.usagePercentage >= 95
-                    ? "bg-red-600"
+                className={`h-full rounded-full transition-all duration-1000 ease-out shadow-sm ${
+                  summary.usagePercentage >= 95
+                    ? "bg-gradient-to-r from-red-500 to-rose-600"
                     : summary.usagePercentage >= 80
-                      ? "bg-yellow-500"
-                      : "bg-blue-600"
-                  }`}
+                      ? "bg-gradient-to-r from-amber-400 to-orange-500"
+                      : "bg-gradient-to-r from-blue-500 to-indigo-600"
+                }`}
                 style={{
-                  width: `${Math.max(
-                    Math.min(summary.usagePercentage, 100),
-                    summary.usagePercentage > 0 ? 1 : 0
-                  )}%`,
+                  width: `${Math.max(summary.usagePercentage, summary.usagePercentage > 0 ? 2 : 0)}%`,
                 }}
               />
             </div>
 
-            <div className="mt-3">
+            <div className="mt-6 flex flex-wrap gap-3">
               <span
-                className={`inline-flex items-center rounded-md px-2.5 py-1 text-[11px] font-semibold border ${summary.usagePercentage >= 95
+                className={`inline-flex items-center px-4 py-1.5 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-widest border-2 ${
+                  summary.usagePercentage >= 95
                     ? "bg-red-50 text-red-700 border-red-100"
                     : summary.usagePercentage >= 80
-                      ? "bg-yellow-50 text-yellow-700 border-yellow-100"
+                      ? "bg-amber-50 text-amber-700 border-amber-100"
                       : "bg-blue-50 text-blue-700 border-blue-100"
-                  }`}
+                }`}
               >
                 {summary.usagePercentage >= 95
-                  ? "Critical Usage"
+                  ? "Critical Status"
                   : summary.usagePercentage >= 80
-                    ? "Warning Usage"
-                    : "Healthy Usage"}
+                    ? "Warning Threshold"
+                    : "Optimal Status"}
+              </span>
+
+              <span className="inline-flex items-center px-4 py-1.5 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-widest bg-slate-50 text-slate-600 border-2 border-slate-100">
+                Auto-Cleanup Enabled
               </span>
             </div>
           </div>
@@ -166,20 +178,26 @@ export default function Dashboard() {
   );
 }
 
-function DashboardCard({ title, value, subtitle }) {
+function DashboardCard({ title, value, subtitle, icon }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5 shadow-sm min-w-0">
-      <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
+    <div className="group relative rounded-[32px] border border-slate-200 bg-white p-6 sm:p-8 shadow-lg shadow-slate-200/40 hover:shadow-2xl hover:shadow-blue-200/50 transition-all duration-500 overflow-hidden">
+      <div className="absolute top-0 right-0 p-8 text-4xl sm:text-5xl opacity-[0.03] group-hover:opacity-[0.08] transition-opacity grayscale group-hover:grayscale-0">
+        {icon}
+      </div>
+
+      <p className="text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] text-slate-400 mb-4">
         {title}
       </p>
 
-      <h3 className="mt-3 text-[24px] sm:text-[28px] font-bold tracking-tight text-slate-900 break-words">
+      <h3 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors">
         {value}
       </h3>
 
-      <p className="mt-2 text-[12px] text-slate-500 break-words">
+      <p className="mt-2 text-xs sm:text-sm text-slate-500 font-semibold">
         {subtitle}
       </p>
+
+      <div className="mt-6 h-1 w-12 rounded-full bg-slate-100 group-hover:w-full group-hover:bg-blue-600 transition-all duration-500" />
     </div>
   );
 }

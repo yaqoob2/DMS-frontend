@@ -13,19 +13,18 @@ import {
   Trash2,
   PanelLeftClose,
   PanelLeftOpen,
-  Menu,
   X,
 } from "lucide-react";
 
 const allNavItems = [
-  { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
-  { name: "Files", path: "/files", icon: FolderOpen },
-  { name: "Users", path: "/users", icon: Users, roles: ["superadmin"] },
-  { name: "Permissions", path: "/permissions", icon: ShieldCheck, roles: ["superadmin", "owner"] },
-  { name: "Activity", path: "/activity", icon: Activity },
-  { name: "Storage", path: "/storage", icon: HardDrive },
-  { name: "Search", path: "/search", icon: Search },
-  { name: "Deleted Items", path: "/trash", icon: Trash2 },
+  { name: "Executive View", path: "/dashboard", icon: LayoutDashboard },
+  { name: "Asset Vault", path: "/files", icon: FolderOpen },
+  { name: "Personnel", path: "/users", icon: Users, roles: ["superadmin"] },
+  { name: "Access Protocols", path: "/permissions", icon: ShieldCheck, roles: ["superadmin", "owner"] },
+  { name: "Pulse Feed", path: "/activity", icon: Activity },
+  { name: "System Metrics", path: "/storage", icon: HardDrive },
+  { name: "Universal Search", path: "/search", icon: Search },
+  { name: "Recovery Archive", path: "/trash", icon: Trash2 },
 ];
 
 export default function Sidebar({ mobileOpen, setMobileOpen }) {
@@ -37,50 +36,55 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
     return item.roles.includes(user?.role);
   });
 
-  const SidebarContent = () => (
-    <>
-      <div className="h-[74px] border-b border-slate-200 flex items-center justify-between px-4">
-        {!collapsed ? (
+  const SidebarContent = ({ mobile = false }) => (
+    <div className="flex flex-col h-full bg-white select-none">
+      <div className="h-[88px] border-b border-slate-100 flex items-center justify-between px-6 shrink-0">
+        {!collapsed || mobile ? (
           <>
-            <div className="flex items-center gap-3 overflow-hidden">
-              <img src="/logo.jpg" alt="Logo" className="w-9 h-9 rounded-xl object-cover" />
+            <div className="flex items-center gap-4 overflow-hidden">
+              <div className="w-10 h-10 rounded-2xl bg-blue-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-blue-500/20 shrink-0">
+                D
+              </div>
               <div className="overflow-hidden">
-                <h1 className="text-[15px] font-semibold text-slate-900 truncate">
-                  DMS ConnectHub
+                <h1 className="text-[14px] font-black tracking-tighter text-slate-900 uppercase leading-none">
+                  ConnectHub
                 </h1>
-                <p className="text-[11px] text-slate-500 truncate">
-                  Document Repository
+                <p className="text-[9px] font-black text-blue-600 uppercase tracking-[0.2em] mt-1 opacity-70">
+                  Secure Repository
                 </p>
               </div>
             </div>
 
             <button
               onClick={() => setCollapsed(true)}
-              className="hidden md:flex w-8 h-8 rounded-lg hover:bg-slate-100 items-center justify-center text-slate-500"
+              className="hidden lg:flex w-9 h-9 rounded-xl hover:bg-slate-100 items-center justify-center text-slate-400 hover:text-slate-900 transition-all active:scale-95"
             >
-              <PanelLeftClose size={18} />
+              <PanelLeftClose size={20} strokeWidth={2.5} />
             </button>
 
             <button
               onClick={() => setMobileOpen(false)}
-              className="md:hidden w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-500"
+              className="lg:hidden w-9 h-9 rounded-xl hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all active:scale-95"
             >
-              <X size={18} />
+              <X size={20} strokeWidth={2.5} />
             </button>
           </>
         ) : (
           <div className="w-full flex items-center justify-center">
             <button
               onClick={() => setCollapsed(false)}
-              className="w-10 h-10 rounded-xl hover:bg-slate-100 flex items-center justify-center text-slate-500"
+              className="w-12 h-12 rounded-2xl hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-blue-600 transition-all active:scale-95"
             >
-              <PanelLeftOpen size={18} />
+              <PanelLeftOpen size={22} strokeWidth={2.5} />
             </button>
           </div>
         )}
       </div>
 
-      <nav className="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto">
+      <nav className="flex-1 px-4 py-8 space-y-2 overflow-y-auto custom-scrollbar">
+        {!collapsed && (
+          <p className="px-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4">Navigation</p>
+        )}
         {navItems.map((item) => {
           const Icon = item.icon;
 
@@ -90,57 +94,72 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
               to={item.path}
               title={collapsed ? item.name : ""}
               onClick={() => setMobileOpen(false)}
-              className={({ isActive }) =>
-                `flex items-center ${collapsed ? "justify-center" : "gap-3"}
-                h-11 px-3 rounded-xl text-[14px] font-medium transition-all
-                ${isActive
-                  ? "bg-blue-600 text-white shadow-sm"
-                  : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                }`
-              }
             >
-              <Icon size={18} strokeWidth={2.2} />
-              {!collapsed && <span className="truncate">{item.name}</span>}
+              {({ isActive }) => (
+                <div
+                  className={`flex items-center ${collapsed ? "justify-center" : "gap-4"}
+      h-12 px-4 rounded-2xl text-[13px] font-black uppercase tracking-widest transition-all duration-300
+      ${isActive
+                      ? "bg-blue-600 text-white shadow-xl shadow-blue-500/30"
+                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                    }`}
+                >
+                  <Icon size={18} strokeWidth={isActive ? 3 : 2.5} />
+
+                  {!collapsed && (
+                    <span className="truncate">
+                      {item.name}
+                    </span>
+                  )}
+                </div>
+              )}
             </NavLink>
           );
         })}
       </nav>
 
-      <div className="p-3 border-t border-slate-200">
+      <div className="p-6">
         {!collapsed ? (
-          <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5">
-            <p className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
-              DMS
+          <div className="rounded-[2rem] bg-slate-900 p-6 shadow-2xl shadow-slate-900/20">
+            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-400 mb-1">
+              Auth Status
             </p>
-            <p className="text-xs text-slate-600 mt-0.5">v1.2.0-beta</p>
+            <p className="text-xs font-bold text-white truncate">{user?.name || "Unidentified"}</p>
+            <div className="mt-4 flex items-center justify-between">
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">v1.2.0</span>
+              <div className="flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Active</span>
+              </div>
+            </div>
           </div>
         ) : (
-          <div className="flex justify-center">
-            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+          <div className="flex justify-center py-2">
+            <div className="w-3 h-3 rounded-full bg-blue-600 shadow-lg shadow-blue-500/50" />
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 
   return (
     <>
       <aside
-        className={`hidden md:flex h-screen sticky top-0 bg-white border-r border-slate-200 flex-col transition-all duration-300 ${collapsed ? "w-[78px]" : "w-[220px]"
+        className={`hidden lg:flex h-screen sticky top-0 bg-white border-r border-slate-100 flex-col transition-all duration-500 ease-in-out z-40 ${collapsed ? "w-[100px]" : "w-[280px]"
           }`}
       >
         <SidebarContent />
       </aside>
 
       {mobileOpen && (
-        <div className="md:hidden fixed inset-0 z-50">
+        <div className="lg:hidden fixed inset-0 z-[60]">
           <div
-            className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity"
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-all duration-500"
             onClick={() => setMobileOpen(false)}
           />
 
-          <aside className="relative w-[280px] max-w-[85%] h-full bg-white border-r border-slate-200 flex flex-col shadow-2xl transition-transform animate-in slide-in-from-left duration-300">
-            <SidebarContent />
+          <aside className="relative h-full w-[86vw] max-w-[320px] bg-white flex flex-col shadow-[25px_0_50px_-12px_rgba(0,0,0,0.5)] transition-all animate-in slide-in-from-left duration-500 ease-out">
+            <SidebarContent mobile />
           </aside>
         </div>
       )}

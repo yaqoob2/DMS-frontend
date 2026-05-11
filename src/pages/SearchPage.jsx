@@ -58,170 +58,163 @@ export default function SearchPage() {
     const folders = results.folders || [];
 
     return (
-        <div className="p-5 max-w-[1500px] mx-auto bg-[#f8fafc] min-h-full">
+        <div className="w-full max-w-full px-4 sm:px-6 lg:px-8 py-6 lg:py-8 bg-[#f8fafc] min-h-full overflow-x-hidden">
             {/* Header */}
-            <div className="mb-5">
-                <h1 className="text-[30px] font-bold tracking-tight text-slate-900">
-                    Search
+            <div className="mb-8 lg:mb-10">
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-slate-900 leading-tight">
+                    Universal <span className="text-blue-600">Search</span>
                 </h1>
 
-                <p className="mt-1 text-[13px] text-slate-500">
-                    Search files, folders, uploaders, and commit messages across the repository.
+                <p className="mt-2 text-sm sm:text-base text-slate-500 font-medium">
+                    Locate files, folders, and metadata across your entire repository.
                 </p>
             </div>
 
-            {/* Search Form */}
-            <form
-                onSubmit={search}
-                className="rounded-md border border-slate-200 bg-white p-5 shadow-sm mb-6"
-            >
-                <div className="grid gap-3 grid-cols-1 md:grid-cols-[1fr_180px_120px]">
-                    <input
-                        value={q}
-                        onChange={(e) => setQ(e.target.value)}
-                        placeholder="Search documents, folders, uploaders..."
-                        className="h-10 rounded-md border border-slate-200 bg-white px-3 text-[13px] outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                    />
+            {/* Search Form Card */}
+            <section className="rounded-[32px] border border-slate-200 bg-white p-6 sm:p-8 lg:p-10 shadow-xl shadow-slate-200/40 mb-8 lg:mb-12">
+                <form onSubmit={search} className="relative">
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                        <div className="md:col-span-7 lg:col-span-8 relative">
+                            <input
+                                value={q}
+                                onChange={(e) => setQ(e.target.value)}
+                                placeholder="Search by name, uploader, or message..."
+                                className="w-full h-14 sm:h-16 pl-14 pr-6 rounded-2xl border border-slate-200 bg-slate-50/50 text-sm sm:text-base font-bold text-slate-900 outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all placeholder:text-slate-400"
+                            />
+                            <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </div>
+                        </div>
 
-                    <select
-                        value={type}
-                        onChange={(e) => setType(e.target.value)}
-                        className="h-10 rounded-md border border-slate-200 bg-white px-3 text-[13px] outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                    >
-                        <option value="all">All</option>
-                        <option value="files">Files</option>
-                        <option value="folders">Folders</option>
-                    </select>
-
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="h-10 rounded-md bg-blue-600 text-white text-[13px] font-semibold hover:bg-blue-700 disabled:opacity-60 transition-all"
-                    >
-                        {loading ? "Searching..." : "Search"}
-                    </button>
-                </div>
-
-                {error && (
-                    <div className="mt-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-[12px] text-red-700">
-                        {error}
-                    </div>
-                )}
-            </form>
-
-            {/* File Results */}
-            <section className="rounded-md border border-slate-200 bg-white overflow-hidden shadow-sm mb-6">
-                <div className="border-b border-slate-200 px-5 py-4 flex items-center justify-between">
-                    <div>
-                        <h2 className="text-[18px] font-semibold text-slate-900">
-                            Files
-                        </h2>
-
-                        <p className="text-[12px] text-slate-400 mt-1">
-                            {files.length} matching files
-                        </p>
-                    </div>
-                </div>
-
-                {files.length === 0 ? (
-                    <div className="px-5 py-12 text-[13px] text-slate-500">
-                        No file results found.
-                    </div>
-                ) : (
-                    <div className="divide-y divide-slate-100">
-                        {files.map((file) => (
-                            <button
-                                key={file._id}
-                                onClick={() => openFile(file._id)}
-                                className="block w-full px-5 py-4 text-left hover:bg-slate-50 transition-all"
+                        <div className="md:col-span-3 lg:col-span-2">
+                            <select
+                                value={type}
+                                onChange={(e) => setType(e.target.value)}
+                                className="w-full h-14 sm:h-16 px-5 rounded-2xl border border-slate-200 bg-slate-50/50 text-sm font-black uppercase tracking-widest text-slate-700 outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all cursor-pointer appearance-none text-center"
                             >
-                                <div className="flex items-start justify-between gap-5">
-                                    <div className="min-w-0">
-                                        <p className="text-[13px] font-semibold text-slate-800 truncate">
-                                            {file.originalName ||
-                                                file.name ||
-                                                file.fileName ||
-                                                "Untitled file"}
-                                        </p>
+                                <option value="all">All Items</option>
+                                <option value="files">Files Only</option>
+                                <option value="folders">Folders Only</option>
+                            </select>
+                        </div>
 
-                                        <div className="mt-2 flex flex-wrap gap-4 text-[11px] text-slate-400">
-                                            <span>
-                                                Uploader:{" "}
-                                                {file.uploader?.name ||
-                                                    file.uploadedBy?.name ||
-                                                    file.uploaderName ||
-                                                    "-"}
-                                            </span>
+                        <div className="md:col-span-2 lg:col-span-2">
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full h-14 sm:h-16 rounded-2xl bg-blue-600 text-white text-sm sm:text-base font-black uppercase tracking-widest hover:bg-blue-700 disabled:opacity-50 transition-all shadow-lg shadow-blue-500/25 active:scale-95 flex items-center justify-center gap-2"
+                            >
+                                {loading ? (
+                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                ) : (
+                                    "Search"
+                                )}
+                            </button>
+                        </div>
+                    </div>
 
-                                            <span>
-                                                Commit:{" "}
-                                                {file.commitMessage ||
-                                                    file.message ||
-                                                    "-"}
-                                            </span>
+                    {error && (
+                        <div className="mt-6 rounded-2xl border border-red-100 bg-red-50 px-5 py-4 text-xs sm:text-sm text-red-600 font-bold animate-in fade-in slide-in-from-top-2">
+                            <span className="mr-2">⚠️</span> {error}
+                        </div>
+                    )}
+                </form>
+            </section>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+                {/* File Results */}
+                <section className="space-y-6">
+                    <div className="flex items-center justify-between px-2">
+                        <h2 className="text-xl font-black text-slate-900 tracking-tight">
+                            Matching <span className="text-blue-600">Files</span>
+                        </h2>
+                        <span className="px-3 py-1 rounded-full bg-slate-100 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
+                            {files.length} Found
+                        </span>
+                    </div>
+
+                    <div className="space-y-4">
+                        {files.length === 0 ? (
+                            <div className="rounded-[32px] border-2 border-dashed border-slate-200 p-12 text-center">
+                                <p className="text-slate-400 font-bold text-sm">No files found matching query.</p>
+                            </div>
+                        ) : (
+                            files.map((file) => (
+                                <button
+                                    key={file._id}
+                                    onClick={() => openFile(file._id)}
+                                    className="w-full group rounded-[2rem] border border-slate-200 bg-white p-6 text-left hover:border-blue-500 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300"
+                                >
+                                    <div className="flex items-start gap-5">
+                                        <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-2xl shrink-0 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500">
+                                            📄
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <h3 className="text-sm sm:text-base font-black text-slate-900 truncate group-hover:text-blue-600 transition-colors">
+                                                {file.originalName || file.name || "Untitled Asset"}
+                                            </h3>
+                                            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">
+                                                <span className="flex items-center gap-1.5">
+                                                    <span className="text-slate-300">👤</span>
+                                                    {file.uploader?.name || file.uploadedBy?.name || "System"}
+                                                </span>
+                                                <span className="flex items-center gap-1.5 max-w-[200px] truncate">
+                                                    <span className="text-slate-300">💬</span>
+                                                    {file.commitMessage || "No message"}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
-
-                                    <div className="shrink-0">
-                                        <span className="inline-flex items-center rounded-md border border-blue-100 bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700">
-                                            File
-                                        </span>
-                                    </div>
-                                </div>
-                            </button>
-                        ))}
+                                </button>
+                            ))
+                        )}
                     </div>
-                )}
-            </section>
+                </section>
 
-            {/* Folder Results */}
-            <section className="rounded-md border border-slate-200 bg-white overflow-hidden shadow-sm">
-                <div className="border-b border-slate-200 px-5 py-4 flex items-center justify-between">
-                    <div>
-                        <h2 className="text-[18px] font-semibold text-slate-900">
-                            Folders
+                {/* Folder Results */}
+                <section className="space-y-6">
+                    <div className="flex items-center justify-between px-2">
+                        <h2 className="text-xl font-black text-slate-900 tracking-tight">
+                            Matching <span className="text-amber-600">Folders</span>
                         </h2>
-
-                        <p className="text-[12px] text-slate-400 mt-1">
-                            {folders.length} matching folders
-                        </p>
+                        <span className="px-3 py-1 rounded-full bg-slate-100 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
+                            {folders.length} Found
+                        </span>
                     </div>
-                </div>
 
-                {folders.length === 0 ? (
-                    <div className="px-5 py-12 text-[13px] text-slate-500">
-                        No folder results found.
-                    </div>
-                ) : (
-                    <div className="divide-y divide-slate-100">
-                        {folders.map((folder) => (
-                            <button
-                                key={folder._id}
-                                onClick={() => openFolder(folder._id)}
-                                className="block w-full px-5 py-4 text-left hover:bg-slate-50 transition-all"
-                            >
-                                <div className="flex items-start justify-between gap-5">
-                                    <div className="min-w-0">
-                                        <p className="text-[13px] font-semibold text-slate-800 truncate">
-                                            {folder.name || "Untitled folder"}
-                                        </p>
-
-                                        <p className="mt-2 text-[11px] text-slate-400 truncate">
-                                            Path: {folder.path || "-"}
-                                        </p>
+                    <div className="space-y-4">
+                        {folders.length === 0 ? (
+                            <div className="rounded-[32px] border-2 border-dashed border-slate-200 p-12 text-center">
+                                <p className="text-slate-400 font-bold text-sm">No folders found matching query.</p>
+                            </div>
+                        ) : (
+                            folders.map((folder) => (
+                                <button
+                                    key={folder._id}
+                                    onClick={() => openFolder(folder._id)}
+                                    className="w-full group rounded-[2rem] border border-slate-200 bg-white p-6 text-left hover:border-amber-500 hover:shadow-xl hover:shadow-amber-500/10 transition-all duration-300"
+                                >
+                                    <div className="flex items-start gap-5">
+                                        <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center text-2xl shrink-0 group-hover:scale-110 group-hover:bg-amber-500 group-hover:text-white transition-all duration-500">
+                                            📁
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <h3 className="text-sm sm:text-base font-black text-slate-900 truncate group-hover:text-amber-600 transition-colors">
+                                                {folder.name || "Untitled Collection"}
+                                            </h3>
+                                            <p className="mt-2 text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-widest truncate">
+                                                Path: {folder.path || "/root"}
+                                            </p>
+                                        </div>
                                     </div>
-
-                                    <div className="shrink-0">
-                                        <span className="inline-flex items-center rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-semibold text-slate-700">
-                                            Folder
-                                        </span>
-                                    </div>
-                                </div>
-                            </button>
-                        ))}
+                                </button>
+                            ))
+                        )}
                     </div>
-                )}
-            </section>
+                </section>
+            </div>
         </div>
     );
 }

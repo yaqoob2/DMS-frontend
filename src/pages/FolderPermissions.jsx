@@ -141,179 +141,197 @@ export default function FolderPermissions() {
 
     if (loading) {
         return (
-            <div className="p-6">
-                <h1 className="text-2xl font-semibold text-slate-900">
-                    Folder Permissions
-                </h1>
-
-                <p className="mt-4 text-slate-500">
-                    Loading permissions...
-                </p>
+            <div className="p-8 text-center text-slate-500 animate-pulse">
+                <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                <p className="text-xs font-black uppercase tracking-[0.2em]">Initialising Permissions...</p>
             </div>
         );
     }
 
     return (
-        <div className="p-5 max-w-[1500px] mx-auto bg-[#f8fafc] min-h-full">
+        <div className="w-full max-w-full px-4 sm:px-6 lg:px-8 py-6 lg:py-8 bg-[#f8fafc] min-h-full overflow-x-hidden">
             {/* Header */}
-            <div className="mb-5">
-                <h1 className="text-[30px] font-bold tracking-tight text-slate-900">
-                    Folder Permissions
+            <div className="mb-8 lg:mb-10">
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-slate-900 leading-tight">
+                    Folder <span className="text-blue-600">Permissions</span>
                 </h1>
 
-                <p className="mt-1 text-[13px] text-slate-500">
-                    Manage folder access permissions for users.
+                <p className="mt-2 text-sm sm:text-base text-slate-500 font-medium">
+                    Configure granular access control for your organizational folders.
                 </p>
             </div>
 
             {/* Error */}
             {error && (
-                <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-[12px] text-red-700 mb-5">
-                    {error}
+                <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3.5 text-sm text-red-700 font-bold mb-8 animate-in fade-in slide-in-from-top-2">
+                    <span className="mr-2">⚠️</span> {error}
                 </div>
             )}
 
-            {/* Controls */}
-            <section className="rounded-md border border-slate-200 bg-white p-5 shadow-sm mb-6">
-                <div className="mb-5">
-                    <label className="block text-[12px] font-semibold uppercase tracking-[0.14em] text-slate-400 mb-2">
-                        Select Folder
-                    </label>
+            {/* Selection & Add Permission Card */}
+            <section className="rounded-[32px] border border-slate-200 bg-white p-6 sm:p-8 lg:p-10 shadow-xl shadow-slate-200/40 mb-8 lg:mb-12">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+                    {/* Folder Selection (Left) */}
+                    <div className="lg:col-span-4 space-y-4">
+                        <div>
+                            <label className="block text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3 ml-1">
+                                1. Target Folder
+                            </label>
 
-                    <select
-                        value={selectedFolder}
-                        onChange={(e) =>
-                            setSelectedFolder(e.target.value)
-                        }
-                        className="w-full h-10 rounded-md border border-slate-200 bg-white px-3 text-[13px] outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                    >
-                        {folders.map((folder) => (
-                            <option
-                                key={folder._id}
-                                value={folder._id}
+                            <div className="relative group">
+                                <select
+                                    value={selectedFolder}
+                                    onChange={(e) =>
+                                        setSelectedFolder(e.target.value)
+                                    }
+                                    className="w-full h-12 sm:h-14 rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-sm sm:text-base font-bold text-slate-900 outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all appearance-none cursor-pointer"
+                                >
+                                    {folders.map((folder) => (
+                                        <option
+                                            key={folder._id}
+                                            value={folder._id}
+                                        >
+                                            {folder.path || folder.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 group-hover:text-blue-600 transition-colors">
+                                    ▼
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="p-4 rounded-2xl bg-blue-50 border border-blue-100">
+                            <p className="text-xs text-blue-700 font-semibold leading-relaxed">
+                                Tip: Select a folder to view and manage its current access list.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Add Permission Form (Right) */}
+                    <div className="lg:col-span-8">
+                        <label className="block text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3 ml-1">
+                            2. Add New Access Grant
+                        </label>
+
+                        <form
+                            onSubmit={addPermission}
+                            className="flex flex-col sm:flex-row gap-4"
+                        >
+                            <div className="flex-1 min-w-0">
+                                <select
+                                    value={form.userId}
+                                    onChange={(e) =>
+                                        setForm({
+                                            ...form,
+                                            userId: e.target.value,
+                                        })
+                                    }
+                                    required
+                                    className="w-full h-12 sm:h-14 rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-sm sm:text-base font-bold text-slate-900 outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all cursor-pointer"
+                                >
+                                    <option value="">Select Target User</option>
+
+                                    {users.map((user) => (
+                                        <option
+                                            key={user._id}
+                                            value={user._id}
+                                        >
+                                            {user.name} ({user.role})
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="w-full sm:w-40">
+                                <select
+                                    value={form.access}
+                                    onChange={(e) =>
+                                        setForm({
+                                            ...form,
+                                            access: e.target.value,
+                                        })
+                                    }
+                                    className="w-full h-12 sm:h-14 rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-sm sm:text-base font-bold text-slate-900 outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all cursor-pointer"
+                                >
+                                    <option value="view">View Only</option>
+                                    <option value="edit">Edit Access</option>
+                                    <option value="admin">Full Admin</option>
+                                </select>
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={saving}
+                                className="h-12 sm:h-14 px-8 rounded-2xl bg-blue-600 text-white text-sm sm:text-base font-black hover:bg-blue-700 disabled:opacity-50 transition-all shadow-lg shadow-blue-500/25 whitespace-nowrap active:scale-[0.98]"
                             >
-                                {folder.path || folder.name}
-                            </option>
-                        ))}
-                    </select>
+                                Grant Access
+                            </button>
+                        </form>
+                    </div>
                 </div>
-
-                <form
-                    onSubmit={addPermission}
-                    className="grid gap-3 grid-cols-1 md:grid-cols-3"
-                >
-                    <select
-                        value={form.userId}
-                        onChange={(e) =>
-                            setForm({
-                                ...form,
-                                userId: e.target.value,
-                            })
-                        }
-                        required
-                        className="h-10 rounded-md border border-slate-200 bg-white px-3 text-[13px] outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                    >
-                        <option value="">Select User</option>
-
-                        {users.map((user) => (
-                            <option
-                                key={user._id}
-                                value={user._id}
-                            >
-                                {user.name} ({user.role})
-                            </option>
-                        ))}
-                    </select>
-
-                    <select
-                        value={form.access}
-                        onChange={(e) =>
-                            setForm({
-                                ...form,
-                                access: e.target.value,
-                            })
-                        }
-                        className="h-10 rounded-md border border-slate-200 bg-white px-3 text-[13px] outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                    >
-                        <option value="view">View</option>
-                        <option value="edit">Edit</option>
-                        <option value="admin">Admin</option>
-                    </select>
-
-                    <button
-                        type="submit"
-                        disabled={saving}
-                        className="h-10 rounded-md bg-blue-600 text-white text-[13px] font-semibold hover:bg-blue-700 disabled:opacity-60 transition-all"
-                    >
-                        Add Permission
-                    </button>
-                </form>
             </section>
 
-            {/* Permissions Table */}
-            <section className="rounded-md border border-slate-200 bg-white overflow-hidden shadow-sm">
-                <div className="border-b border-slate-200 px-5 py-4 flex items-center justify-between">
+            {/* Current Permissions List */}
+            <section className="rounded-[32px] border border-slate-200 bg-white overflow-hidden shadow-xl shadow-slate-200/40">
+                <div className="border-b border-slate-100 px-6 sm:px-8 py-5 sm:py-6 flex items-center justify-between bg-slate-50/30">
                     <div>
-                        <h2 className="text-[18px] font-semibold text-slate-900">
-                            Current Permissions
+                        <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
+                            Current Access List
                         </h2>
 
-                        <p className="text-[12px] text-slate-400 mt-1">
-                            {permissions.length} active permissions
+                        <p className="text-xs sm:text-sm text-slate-400 font-semibold mt-0.5">
+                            {permissions.length} active authorization{permissions.length !== 1 ? 's' : ''}
                         </p>
                     </div>
+
+                    <div className="hidden sm:block h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
                 </div>
 
                 {permissions.length === 0 ? (
-                    <div className="px-5 py-12 text-[13px] text-slate-500">
-                        No permissions assigned yet.
+                    <div className="px-8 py-16 text-center">
+                        <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 grayscale opacity-50">
+                            🛡️
+                        </div>
+                        <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px] sm:text-xs">
+                            No permissions found for this folder.
+                        </p>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full border-collapse">
-                            <thead className="bg-slate-50 border-b border-slate-200">
-                                <tr className="text-[10px] uppercase tracking-[0.16em] text-slate-400">
-                                    <th className="px-5 py-3 text-left font-bold">
-                                        User
-                                    </th>
-
-                                    <th className="px-5 py-3 text-left font-bold">
-                                        Access
-                                    </th>
-
-                                    <th className="px-5 py-3 text-left font-bold">
-                                        Created
-                                    </th>
-
-                                    <th className="px-5 py-3 text-right font-bold">
-                                        Actions
-                                    </th>
+                    <div className="w-full overflow-x-auto custom-scrollbar">
+                        <table className="w-full border-collapse min-w-[640px]">
+                            <thead className="bg-slate-50/50 border-b border-slate-100">
+                                <tr className="text-[10px] sm:text-xs uppercase tracking-[0.2em] text-slate-400 font-black">
+                                    <th className="px-6 sm:px-8 py-4 text-left">Authorized User</th>
+                                    <th className="px-6 sm:px-8 py-4 text-left">Access Level</th>
+                                    <th className="px-6 sm:px-8 py-4 text-left">Granted On</th>
+                                    <th className="px-6 sm:px-8 py-4 text-right">Actions</th>
                                 </tr>
                             </thead>
 
-                            <tbody className="divide-y divide-slate-100">
+                            <tbody className="divide-y divide-slate-50">
                                 {permissions.map((permission) => (
                                     <tr
                                         key={permission._id}
-                                        className="hover:bg-slate-50 transition-all"
+                                        className="group hover:bg-slate-50/80 transition-all duration-300"
                                     >
-                                        {/* User */}
-                                        <td className="px-5 py-4">
-                                            <div>
-                                                <p className="text-[13px] font-semibold text-slate-800">
-                                                    {permission.userId?.name ||
-                                                        permission.user?.name ||
-                                                        "-"}
-                                                </p>
-
-                                                <p className="text-[11px] text-slate-400 mt-1">
-                                                    Authorized User
-                                                </p>
+                                        <td className="px-6 sm:px-8 py-5">
+                                            <div className="flex items-center gap-3 sm:gap-4">
+                                                <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-sm font-black text-white shadow-sm ring-4 ring-blue-50 transition-transform group-hover:scale-110">
+                                                    {(permission.userId?.name || permission.user?.name || "?").charAt(0).toUpperCase()}
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm sm:text-base font-bold text-slate-900 leading-none">
+                                                        {permission.userId?.name || permission.user?.name || "System User"}
+                                                    </p>
+                                                    <p className="text-[10px] sm:text-xs text-slate-400 font-bold uppercase tracking-wider mt-1.5">
+                                                        {permission.userId?.email || permission.user?.email || "internal_id"}
+                                                    </p>
+                                                </div>
                                             </div>
                                         </td>
 
-                                        {/* Access */}
-                                        <td className="px-5 py-4">
+                                        <td className="px-6 sm:px-8 py-5">
                                             <select
                                                 value={permission.access}
                                                 onChange={(e) =>
@@ -322,32 +340,30 @@ export default function FolderPermissions() {
                                                         e.target.value
                                                     )
                                                 }
-                                                className="h-9 rounded-md border border-slate-200 bg-white px-3 text-[12px] outline-none focus:border-blue-500"
+                                                className="h-10 px-3 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm font-bold text-slate-700 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all cursor-pointer hover:bg-slate-50"
                                             >
-                                                <option value="view">View</option>
-                                                <option value="edit">Edit</option>
-                                                <option value="admin">Admin</option>
+                                                <option value="view">View Only</option>
+                                                <option value="edit">Edit Access</option>
+                                                <option value="admin">Full Admin</option>
                                             </select>
                                         </td>
 
-                                        {/* Created */}
-                                        <td className="px-5 py-4 text-[12px] text-slate-500 whitespace-nowrap">
+                                        <td className="px-6 sm:px-8 py-5 text-xs sm:text-sm text-slate-500 font-semibold whitespace-nowrap">
                                             {permission.createdAt
-                                                ? new Date(
-                                                    permission.createdAt
-                                                ).toLocaleString()
-                                                : "-"}
+                                                ? new Date(permission.createdAt).toLocaleDateString(undefined, {
+                                                    year: 'numeric',
+                                                    month: 'short',
+                                                    day: 'numeric'
+                                                })
+                                                : "Initial Setup"}
                                         </td>
 
-                                        {/* Actions */}
-                                        <td className="px-5 py-4 text-right">
+                                        <td className="px-6 sm:px-8 py-5 text-right">
                                             <button
-                                                onClick={() =>
-                                                    deletePermission(permission._id)
-                                                }
-                                                className="h-9 px-3 rounded-md bg-red-600 text-white text-[12px] font-semibold hover:bg-red-700 transition-all"
+                                                onClick={() => deletePermission(permission._id)}
+                                                className="h-10 px-5 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest text-red-500 hover:bg-red-50 active:bg-red-100 transition-all"
                                             >
-                                                Remove
+                                                Revoke
                                             </button>
                                         </td>
                                     </tr>
