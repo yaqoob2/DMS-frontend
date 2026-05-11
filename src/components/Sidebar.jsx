@@ -28,10 +28,9 @@ const allNavItems = [
   { name: "Deleted Items", path: "/trash", icon: Trash2 },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ mobileOpen, setMobileOpen }) {
   const { user } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
 
   const navItems = allNavItems.filter((item) => {
     if (!item.roles) return true;
@@ -126,13 +125,6 @@ export default function Sidebar() {
 
   return (
     <>
-      <button
-        onClick={() => setMobileOpen(true)}
-        className="md:hidden fixed top-4 left-4 z-50 w-10 h-10 rounded-xl bg-white border border-slate-200 shadow-sm flex items-center justify-center text-slate-700"
-      >
-        <Menu size={20} />
-      </button>
-
       <aside
         className={`hidden md:flex h-screen sticky top-0 bg-white border-r border-slate-200 flex-col transition-all duration-300 ${collapsed ? "w-[78px]" : "w-[220px]"
           }`}
@@ -143,11 +135,11 @@ export default function Sidebar() {
       {mobileOpen && (
         <div className="md:hidden fixed inset-0 z-50">
           <div
-            className="absolute inset-0 bg-black/40"
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity"
             onClick={() => setMobileOpen(false)}
           />
 
-          <aside className="relative w-[82%] max-w-[320px] h-full bg-white border-r border-slate-200 flex flex-col shadow-xl">
+          <aside className="relative w-[280px] max-w-[85%] h-full bg-white border-r border-slate-200 flex flex-col shadow-2xl transition-transform animate-in slide-in-from-left duration-300">
             <SidebarContent />
           </aside>
         </div>

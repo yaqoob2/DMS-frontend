@@ -176,65 +176,86 @@ export default function StorageDashboard() {
                 </div>
 
                 {largestFiles.length === 0 ? (
-                    <div className="px-5 py-12 text-[13px] text-slate-500">
+                    <div className="px-5 py-12 text-[13px] text-slate-500 text-center">
                         No files found.
                     </div>
                 ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full border-collapse">
-                            <thead className="bg-slate-50 border-b border-slate-200">
-                                <tr className="text-[10px] uppercase tracking-[0.16em] text-slate-400">
-                                    <th className="px-5 py-3 text-left font-bold">
-                                        File Name
-                                    </th>
+                    <>
+                        {/* Desktop Table */}
+                        <div className="hidden lg:block overflow-x-auto">
+                            <table className="w-full border-collapse">
+                                <thead className="bg-slate-50 border-b border-slate-200">
+                                    <tr className="text-[10px] uppercase tracking-[0.16em] text-slate-400">
+                                        <th className="px-5 py-3 text-left font-bold">
+                                            File Name
+                                        </th>
 
-                                    <th className="px-5 py-3 text-left font-bold">
-                                        Size
-                                    </th>
+                                        <th className="px-5 py-3 text-left font-bold">
+                                            Size
+                                        </th>
 
-                                    <th className="px-5 py-3 text-left font-bold">
-                                        Uploaded
-                                    </th>
-                                </tr>
-                            </thead>
-
-                            <tbody className="divide-y divide-slate-100">
-                                {largestFiles.map((file) => (
-                                    <tr
-                                        key={file._id}
-                                        className="hover:bg-slate-50 transition-all"
-                                    >
-                                        <td className="px-5 py-4">
-                                            <div>
-                                                <p className="text-[13px] font-semibold text-slate-800">
-                                                    {file.originalName ||
-                                                        file.name ||
-                                                        file.fileName ||
-                                                        "Untitled file"}
-                                                </p>
-
-                                                <p className="text-[11px] text-slate-400 mt-1">
-                                                    Document
-                                                </p>
-                                            </div>
-                                        </td>
-
-                                        <td className="px-5 py-4 text-[12px] text-slate-600">
-                                            {formatSize(file.size)}
-                                        </td>
-
-                                        <td className="px-5 py-4 text-[12px] text-slate-500 whitespace-nowrap">
-                                            {file.createdAt
-                                                ? new Date(
-                                                    file.createdAt
-                                                ).toLocaleString()
-                                                : "-"}
-                                        </td>
+                                        <th className="px-5 py-3 text-left font-bold">
+                                            Uploaded
+                                        </th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                                </thead>
+
+                                <tbody className="divide-y divide-slate-100">
+                                    {largestFiles.map((file) => (
+                                        <tr
+                                            key={file._id}
+                                            className="hover:bg-slate-50 transition-all"
+                                        >
+                                            <td className="px-5 py-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center text-lg">
+                                                        📄
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[13px] font-semibold text-slate-800">
+                                                            {file.originalName || file.name || "Untitled file"}
+                                                        </p>
+                                                        <p className="text-[11px] text-slate-400 mt-0.5">
+                                                            Document
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </td>
+
+                                            <td className="px-5 py-4 text-[12px] text-slate-600">
+                                                {formatSize(file.size)}
+                                            </td>
+
+                                            <td className="px-5 py-4 text-[12px] text-slate-500 whitespace-nowrap">
+                                                {file.createdAt ? new Date(file.createdAt).toLocaleDateString() : "-"}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Mobile List */}
+                        <div className="lg:hidden divide-y divide-slate-100">
+                            {largestFiles.map((file) => (
+                                <div key={file._id} className="p-4 flex items-center justify-between gap-4">
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-lg shrink-0">
+                                            📄
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="text-[13px] font-bold text-slate-900 truncate">
+                                                {file.originalName || file.name || "Untitled file"}
+                                            </p>
+                                            <p className="text-[11px] text-slate-500 mt-0.5">
+                                                {formatSize(file.size)} • {file.createdAt ? new Date(file.createdAt).toLocaleDateString() : "-"}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </>
                 )}
             </section>
 
@@ -253,56 +274,80 @@ export default function StorageDashboard() {
                 </div>
 
                 {monthlyActivity.length === 0 ? (
-                    <div className="px-5 py-12 text-[13px] text-slate-500">
+                    <div className="px-5 py-12 text-[13px] text-slate-500 text-center">
                         No monthly activity found.
                     </div>
                 ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full border-collapse">
-                            <thead className="bg-slate-50 border-b border-slate-200">
-                                <tr className="text-[10px] uppercase tracking-[0.16em] text-slate-400">
-                                    <th className="px-5 py-3 text-left font-bold">
-                                        Month
-                                    </th>
+                    <>
+                        {/* Desktop Table */}
+                        <div className="hidden lg:block overflow-x-auto">
+                            <table className="w-full border-collapse">
+                                <thead className="bg-slate-50 border-b border-slate-200">
+                                    <tr className="text-[10px] uppercase tracking-[0.16em] text-slate-400">
+                                        <th className="px-5 py-3 text-left font-bold">
+                                            Month
+                                        </th>
 
-                                    <th className="px-5 py-3 text-left font-bold">
-                                        Uploads
-                                    </th>
+                                        <th className="px-5 py-3 text-left font-bold">
+                                            Uploads
+                                        </th>
 
-                                    <th className="px-5 py-3 text-left font-bold">
-                                        Downloads
-                                    </th>
-                                </tr>
-                            </thead>
-
-                            <tbody className="divide-y divide-slate-100">
-                                {monthlyActivity.map((item, index) => (
-                                    <tr
-                                        key={index}
-                                        className="hover:bg-slate-50 transition-all"
-                                    >
-                                        <td className="px-5 py-4">
-                                            <p className="text-[13px] font-semibold text-slate-800">
-                                                {item.month || item._id || "-"}
-                                            </p>
-                                        </td>
-
-                                        <td className="px-5 py-4">
-                                            <span className="inline-flex items-center rounded-md border border-blue-100 bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700">
-                                                {item.uploads || 0}
-                                            </span>
-                                        </td>
-
-                                        <td className="px-5 py-4">
-                                            <span className="inline-flex items-center rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-semibold text-slate-700">
-                                                {item.downloads || 0}
-                                            </span>
-                                        </td>
+                                        <th className="px-5 py-3 text-left font-bold">
+                                            Downloads
+                                        </th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                                </thead>
+
+                                <tbody className="divide-y divide-slate-100">
+                                    {monthlyActivity.map((item, index) => (
+                                        <tr
+                                            key={index}
+                                            className="hover:bg-slate-50 transition-all"
+                                        >
+                                            <td className="px-5 py-4">
+                                                <p className="text-[13px] font-semibold text-slate-800">
+                                                    {item.month || item._id || "-"}
+                                                </p>
+                                            </td>
+
+                                            <td className="px-5 py-4">
+                                                <span className="inline-flex items-center rounded-md border border-blue-100 bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700">
+                                                    {item.uploads || 0}
+                                                </span>
+                                            </td>
+
+                                            <td className="px-5 py-4">
+                                                <span className="inline-flex items-center rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-semibold text-slate-700">
+                                                    {item.downloads || 0}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Mobile Grid */}
+                        <div className="lg:hidden grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
+                            {monthlyActivity.map((item, index) => (
+                                <div key={index} className="p-4 flex items-center justify-between">
+                                    <div className="text-[13px] font-bold text-slate-900">
+                                        {item.month || item._id || "-"}
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <div className="text-center px-3 py-1 rounded-lg bg-blue-50 border border-blue-100">
+                                            <p className="text-[10px] font-bold text-blue-400 uppercase leading-none mb-1">UP</p>
+                                            <p className="text-[12px] font-bold text-blue-700 leading-none">{item.uploads || 0}</p>
+                                        </div>
+                                        <div className="text-center px-3 py-1 rounded-lg bg-slate-50 border border-slate-200">
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase leading-none mb-1">DL</p>
+                                            <p className="text-[12px] font-bold text-slate-700 leading-none">{item.downloads || 0}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </>
                 )}
             </section>
         </div>

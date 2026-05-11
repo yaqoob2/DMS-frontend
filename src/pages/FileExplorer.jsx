@@ -248,7 +248,7 @@ export default function FileExplorer() {
                   No folders found.
                 </div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
                   {folders.map((folder) => {
                     const folderId = getId(folder);
 
@@ -256,32 +256,35 @@ export default function FileExplorer() {
                       <div
                         key={folderId}
                         onClick={() => setSelectedFolder(folder)}
-                        className="group bg-white border border-slate-200 rounded-xl p-4 hover:border-blue-300 hover:shadow-sm transition-all cursor-pointer"
+                        className="group bg-white border border-slate-200 rounded-2xl p-3 sm:p-4 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer relative"
                       >
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0">
-                            <div className="w-10 h-10 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center text-blue-600 text-base mb-3">
-                              📁
-                            </div>
+                        <div className="flex flex-col items-center sm:items-start text-center sm:text-left">
+                          <div className="w-12 h-12 bg-blue-50 border border-blue-100 rounded-2xl flex items-center justify-center text-xl mb-3 group-hover:scale-110 transition-transform">
+                            📁
+                          </div>
 
-                            <h3 className="text-[13px] font-semibold text-slate-800 break-words">
+                          <div className="min-w-0 w-full">
+                            <h3 className="text-[13px] font-bold text-slate-800 truncate mb-0.5">
                               {folder.name || "Untitled"}
                             </h3>
 
-                            <p className="text-[11px] text-slate-400 mt-1">
+                            <p className="text-[11px] text-slate-400 font-medium">
                               Folder
                             </p>
                           </div>
-
-                          <button
-                            onClick={(e) =>
-                              handleDeleteFolder(folderId, e)
-                            }
-                            className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all text-[11px] font-semibold text-red-500"
-                          >
-                            Delete
-                          </button>
                         </div>
+
+                        <button
+                          onClick={(e) =>
+                            handleDeleteFolder(folderId, e)
+                          }
+                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-red-50 text-red-500 transition-all"
+                          title="Delete Folder"
+                        >
+                          <svg size={14} className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
                       </div>
                     );
                   })}

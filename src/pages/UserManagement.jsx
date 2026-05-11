@@ -211,8 +211,8 @@ export default function UserManagement() {
                 </form>
             </section>
 
-            {/* Users Table */}
-            <section className="rounded-md border border-slate-200 bg-white overflow-hidden shadow-sm">
+            {/* Users Table / Cards */}
+            <section className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
                 <div className="border-b border-slate-200 px-5 py-4 flex items-center justify-between">
                     <div>
                         <h2 className="text-[18px] font-semibold text-slate-900">
@@ -226,128 +226,193 @@ export default function UserManagement() {
                 </div>
 
                 {users.length === 0 ? (
-                    <div className="px-5 py-12 text-[13px] text-slate-500">
+                    <div className="px-5 py-12 text-[13px] text-slate-500 text-center">
                         No users found.
                     </div>
                 ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full border-collapse">
-                            <thead className="bg-slate-50 border-b border-slate-200">
-                                <tr className="text-[10px] uppercase tracking-[0.16em] text-slate-400">
-                                    <th className="px-5 py-3 text-left font-bold">
-                                        Name
-                                    </th>
+                    <>
+                        {/* Desktop Table */}
+                        <div className="hidden lg:block overflow-x-auto">
+                            <table className="w-full border-collapse">
+                                <thead className="bg-slate-50 border-b border-slate-200">
+                                    <tr className="text-[10px] uppercase tracking-[0.16em] text-slate-400">
+                                        <th className="px-5 py-3 text-left font-bold">
+                                            Name
+                                        </th>
 
-                                    <th className="px-5 py-3 text-left font-bold">
-                                        Email
-                                    </th>
+                                        <th className="px-5 py-3 text-left font-bold">
+                                            Email
+                                        </th>
 
-                                    <th className="px-5 py-3 text-left font-bold">
-                                        Role
-                                    </th>
+                                        <th className="px-5 py-3 text-left font-bold">
+                                            Role
+                                        </th>
 
-                                    <th className="px-5 py-3 text-left font-bold">
-                                        Status
-                                    </th>
+                                        <th className="px-5 py-3 text-left font-bold">
+                                            Status
+                                        </th>
 
-                                    <th className="px-5 py-3 text-left font-bold">
-                                        Created
-                                    </th>
+                                        <th className="px-5 py-3 text-left font-bold">
+                                            Created
+                                        </th>
 
-                                    <th className="px-5 py-3 text-right font-bold">
-                                        Actions
-                                    </th>
-                                </tr>
-                            </thead>
+                                        <th className="px-5 py-3 text-right font-bold">
+                                            Actions
+                                        </th>
+                                    </tr>
+                                </thead>
 
-                            <tbody className="divide-y divide-slate-100">
-                                {users.map((user) => (
-                                    <tr
-                                        key={user._id}
-                                        className="hover:bg-slate-50 transition-all"
-                                    >
-                                        {/* Name */}
-                                        <td className="px-5 py-4">
-                                            <div>
-                                                <p className="text-[13px] font-semibold text-slate-800">
-                                                    {user.name}
-                                                </p>
+                                <tbody className="divide-y divide-slate-100">
+                                    {users.map((user) => (
+                                        <tr
+                                            key={user._id}
+                                            className="hover:bg-slate-50 transition-all"
+                                        >
+                                            <td className="px-5 py-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500">
+                                                        {user.name?.charAt(0).toUpperCase()}
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[13px] font-semibold text-slate-800">
+                                                            {user.name}
+                                                        </p>
+                                                        <p className="text-[11px] text-slate-400 mt-0.5">
+                                                            User Account
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </td>
 
-                                                <p className="text-[11px] text-slate-400 mt-1">
-                                                    User Account
-                                                </p>
+                                            <td className="px-5 py-4 text-[12px] text-slate-600">
+                                                {user.email}
+                                            </td>
+
+                                            <td className="px-5 py-4">
+                                                <select
+                                                    value={user.role}
+                                                    onChange={(e) =>
+                                                        changeRole(user, e.target.value)
+                                                    }
+                                                    disabled={savingId === user._id}
+                                                    className="h-9 rounded-lg border border-slate-200 bg-white px-2.5 text-[12px] outline-none focus:border-blue-500 transition-colors"
+                                                >
+                                                    <option value="owner">Owner</option>
+                                                    <option value="member">Member</option>
+                                                    <option value="superadmin">
+                                                        Superadmin
+                                                    </option>
+                                                </select>
+                                            </td>
+
+                                            <td className="px-5 py-4">
+                                                <span
+                                                    className={`inline-flex items-center rounded-md px-2.5 py-1 text-[11px] font-semibold border ${user.isActive
+                                                            ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+                                                            : "bg-red-50 text-red-700 border-red-100"
+                                                        }`}
+                                                >
+                                                    {user.isActive
+                                                        ? "Active"
+                                                        : "Inactive"}
+                                                </span>
+                                            </td>
+
+                                            <td className="px-5 py-4 text-[12px] text-slate-500 whitespace-nowrap">
+                                                {formatDate(user.createdAt)}
+                                            </td>
+
+                                            <td className="px-5 py-4">
+                                                <div className="flex items-center justify-end gap-2">
+                                                    <button
+                                                        onClick={() => toggleStatus(user)}
+                                                        disabled={savingId === user._id}
+                                                        className="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[12px] font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-60 transition-all"
+                                                    >
+                                                        {user.isActive
+                                                            ? "Deactivate"
+                                                            : "Activate"}
+                                                    </button>
+
+                                                    <button
+                                                        onClick={() => deleteUser(user._id)}
+                                                        disabled={savingId === user._id}
+                                                        className="h-9 px-3 rounded-lg bg-red-600 text-white text-[12px] font-semibold hover:bg-red-700 disabled:opacity-60 transition-all"
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Mobile Card List */}
+                        <div className="lg:hidden divide-y divide-slate-100">
+                            {users.map((user) => (
+                                <div key={user._id} className="p-4 space-y-4">
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shadow-sm">
+                                                {user.name?.charAt(0).toUpperCase()}
                                             </div>
-                                        </td>
+                                            <div>
+                                                <h3 className="text-[14px] font-bold text-slate-900">{user.name}</h3>
+                                                <p className="text-[12px] text-slate-500">{user.email}</p>
+                                            </div>
+                                        </div>
+                                        <span
+                                            className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold border uppercase tracking-wider ${user.isActive
+                                                    ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+                                                    : "bg-red-50 text-red-700 border-red-100"
+                                                }`}
+                                        >
+                                            {user.isActive ? "Active" : "Inactive"}
+                                        </span>
+                                    </div>
 
-                                        {/* Email */}
-                                        <td className="px-5 py-4 text-[12px] text-slate-600">
-                                            {user.email}
-                                        </td>
-
-                                        {/* Role */}
-                                        <td className="px-5 py-4">
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="space-y-1">
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Role</p>
                                             <select
                                                 value={user.role}
-                                                onChange={(e) =>
-                                                    changeRole(user, e.target.value)
-                                                }
+                                                onChange={(e) => changeRole(user, e.target.value)}
                                                 disabled={savingId === user._id}
-                                                className="h-9 rounded-md border border-slate-200 bg-white px-3 text-[12px] outline-none focus:border-blue-500"
+                                                className="w-full h-9 rounded-lg border border-slate-200 bg-white px-2 text-[12px] outline-none"
                                             >
                                                 <option value="owner">Owner</option>
                                                 <option value="member">Member</option>
-                                                <option value="superadmin">
-                                                    Superadmin
-                                                </option>
+                                                <option value="superadmin">Superadmin</option>
                                             </select>
-                                        </td>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Created At</p>
+                                            <p className="text-[12px] text-slate-600 font-medium py-2">{new Date(user.createdAt).toLocaleDateString()}</p>
+                                        </div>
+                                    </div>
 
-                                        {/* Status */}
-                                        <td className="px-5 py-4">
-                                            <span
-                                                className={`inline-flex items-center rounded-md px-2.5 py-1 text-[11px] font-semibold border ${user.isActive
-                                                        ? "bg-emerald-50 text-emerald-700 border-emerald-100"
-                                                        : "bg-red-50 text-red-700 border-red-100"
-                                                    }`}
-                                            >
-                                                {user.isActive
-                                                    ? "Active"
-                                                    : "Inactive"}
-                                            </span>
-                                        </td>
-
-                                        {/* Date */}
-                                        <td className="px-5 py-4 text-[12px] text-slate-500 whitespace-nowrap">
-                                            {formatDate(user.createdAt)}
-                                        </td>
-
-                                        {/* Actions */}
-                                        <td className="px-5 py-4">
-                                            <div className="flex items-center justify-end gap-2">
-                                                <button
-                                                    onClick={() => toggleStatus(user)}
-                                                    disabled={savingId === user._id}
-                                                    className="h-9 px-3 rounded-md border border-slate-200 bg-white text-[12px] font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-60 transition-all"
-                                                >
-                                                    {user.isActive
-                                                        ? "Deactivate"
-                                                        : "Activate"}
-                                                </button>
-
-                                                <button
-                                                    onClick={() => deleteUser(user._id)}
-                                                    disabled={savingId === user._id}
-                                                    className="h-9 px-3 rounded-md bg-red-600 text-white text-[12px] font-semibold hover:bg-red-700 disabled:opacity-60 transition-all"
-                                                >
-                                                    Delete
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                                    <div className="flex items-center gap-2 pt-1">
+                                        <button
+                                            onClick={() => toggleStatus(user)}
+                                            disabled={savingId === user._id}
+                                            className="flex-1 h-10 rounded-xl border border-slate-200 bg-white text-[12px] font-bold text-slate-700 active:bg-slate-50 transition-colors"
+                                        >
+                                            {user.isActive ? "Deactivate" : "Activate"}
+                                        </button>
+                                        <button
+                                            onClick={() => deleteUser(user._id)}
+                                            disabled={savingId === user._id}
+                                            className="flex-1 h-10 rounded-xl bg-red-50 text-[12px] font-bold text-red-600 active:bg-red-100 transition-colors"
+                                        >
+                                            Delete User
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </>
                 )}
             </section>
         </div>
