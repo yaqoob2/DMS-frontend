@@ -36,7 +36,7 @@ export default function Login() {
   };
 
   return (
-    <div className="relative min-h-screen w-full overflow-x-hidden bg-gradient-to-br from-white via-slate-50 to-blue-100 px-4 py-8 sm:px-6 lg:px-8 flex flex-col items-center justify-center">
+    <div className="relative min-h-[100dvh] w-full overflow-x-hidden bg-gradient-to-br from-white via-slate-50 to-blue-100 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 flex items-center justify-center">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.12),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(37,99,235,0.12),transparent_32%)]" />
 
       <div
@@ -50,7 +50,7 @@ export default function Login() {
 
       <div className="relative w-full max-w-md mx-auto">
         {/* Branding Section */}
-        <div className="flex flex-col items-center justify-center gap-4 mb-8">
+        <div className="flex flex-col items-center justify-center gap-4 mb-6 sm:mb-8">
           <div className="relative group">
              <div className="absolute inset-0 bg-blue-500 rounded-3xl blur-2xl opacity-20 group-hover:opacity-40 transition-opacity"></div>
              <img
@@ -61,11 +61,11 @@ export default function Login() {
           </div>
 
           <div className="text-center">
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-950 tracking-tight leading-none mb-1">
+            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-slate-950 tracking-tight leading-none mb-1">
               DMS<span className="text-blue-600">.</span>
             </h1>
 
-            <p className="text-2xl sm:text-3xl font-light text-slate-700 leading-tight">
+            <p className="text-xl sm:text-3xl font-light text-slate-700 leading-tight">
               Connect
               <span className="font-semibold text-blue-600">Hub</span>
             </p>
@@ -77,7 +77,7 @@ export default function Login() {
         </div>
 
         {/* Login Card */}
-        <div className="w-full bg-white/90 backdrop-blur-3xl border border-white/60 rounded-[32px] p-6 sm:p-10 shadow-2xl shadow-blue-200/50">
+        <div className="w-full bg-white/90 backdrop-blur-3xl border border-white/60 rounded-[28px] sm:rounded-[32px] p-5 sm:p-10 shadow-2xl shadow-blue-200/50">
           <div className="mb-8">
             <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
               Welcome back
@@ -157,7 +157,7 @@ export default function Login() {
         </div>
 
         {/* Footer */}
-        <div className="mt-10 text-center space-y-4">
+        <div className="mt-8 sm:mt-10 text-center space-y-4">
           <p className="text-[11px] sm:text-xs text-slate-400 font-medium tracking-wide uppercase">
             © {new Date().getFullYear()} <span className="text-slate-900 font-bold tracking-tight">DMS CONNECTHUB</span>
           </p>
