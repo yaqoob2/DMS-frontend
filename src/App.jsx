@@ -13,6 +13,7 @@ import SearchPage from './pages/SearchPage';
 import ActivityPage from './pages/ActivityPage';
 import UserManagement from './pages/UserManagement';
 import FolderPermissions from './pages/FolderPermissions';
+import DeletedItems from './pages/DeletedItems';
 
 export default function App() {
   return (
