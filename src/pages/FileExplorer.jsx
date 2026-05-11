@@ -8,10 +8,8 @@ export default function FileExplorer() {
   const [folders, setFolders] = useState([]);
   const [files, setFiles] = useState([]);
   const [selectedFolder, setSelectedFolder] = useState(null);
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
   const [selectedFile, setSelectedFile] = useState(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
@@ -25,18 +23,8 @@ export default function FileExplorer() {
         fileService.getAll().catch(() => ({ data: [] })),
       ]);
 
-      setFolders(
-        Array.isArray(foldersRes.data)
-          ? foldersRes.data
-          : foldersRes.data?.folders || []
-      );
-
-      setFiles(
-        Array.isArray(filesRes.data)
-          ? filesRes.data
-          : filesRes.data?.files || []
-      );
-
+      setFolders(Array.isArray(foldersRes.data) ? foldersRes.data : foldersRes.data?.folders || []);
+      setFiles(Array.isArray(filesRes.data) ? filesRes.data : filesRes.data?.files || []);
       setError("");
     } catch {
       setError("Synchronisation with the central vault failed.");
@@ -50,7 +38,6 @@ export default function FileExplorer() {
   }, [fetchData]);
 
   const getId = (item) => item?.id || item?._id;
-
   const selectedFolderId = getId(selectedFolder);
 
   const visibleFiles = selectedFolder
@@ -78,29 +65,20 @@ export default function FileExplorer() {
     e.target.value = "";
   };
 
-  const handleUpload = async (
-    file,
-    commitMessage,
-    folderId = null,
-    onProgress
-  ) => {
+  const handleUpload = async (file, commitMessage, folderId = null, onProgress) => {
     try {
       const finalFolderId = selectedFolderId || folderId;
-
       const formData = new FormData();
 
       formData.append("file", file);
       formData.append("commitMessage", commitMessage);
 
-      if (finalFolderId) {
-        formData.append("folderId", finalFolderId);
-      }
+      if (finalFolderId) formData.append("folderId", finalFolderId);
 
       await fileService.upload(formData, onProgress);
 
       setIsUploadModalOpen(false);
       setSelectedFile(null);
-
       fetchData();
     } catch (err) {
       alert(err.response?.data?.message || "Upload protocol failed");
@@ -153,93 +131,83 @@ export default function FileExplorer() {
   };
 
   return (
-    <div className="w-full max-w-full px-4 sm:px-6 lg:px-8 py-6 lg:py-8 bg-[#f8fafc] min-h-full overflow-x-hidden">
-      {/* Header Section */}
-      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-8 lg:mb-12">
+    <div className="w-full max-w-full px-4 sm:px-5 lg:px-5 py-5 lg:py-4 bg-slate-50 min-h-full overflow-x-hidden">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6 lg:mb-4">
         <div className="min-w-0">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-slate-900 leading-tight">
-            Central <span className="text-blue-600">Asset Vault</span>
+          <h1 className="text-2xl sm:text-3xl lg:text-[30px] font-bold tracking-tight text-slate-900 leading-tight">
+            File <span className="text-blue-600">Manager</span>
           </h1>
 
-          <nav className="flex items-center gap-2 mt-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-            <button
-              onClick={() => setSelectedFolder(null)}
-              className="hover:text-blue-600 transition-colors"
-            >
-              Master Node
+          <nav className="flex items-center gap-2 mt-2 lg:mt-1 text-[11px] lg:text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+            <button onClick={() => setSelectedFolder(null)} className="hover:text-blue-600 transition-colors">
+              Home
             </button>
-
             <span className="text-slate-300">/</span>
-
-            <span className="text-slate-900 truncate max-w-[200px]">
-              {selectedFolder ? selectedFolder.name : "Unfiltered Archive"}
+            <span className="text-slate-900 truncate max-w-[220px]">
+              {selectedFolder ? selectedFolder.name : "All Files"}
             </span>
           </nav>
         </div>
 
-        {/* Action Controls */}
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           {selectedFolder && (
             <button
               onClick={() => setSelectedFolder(null)}
-              className="h-12 px-6 bg-white border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-all active:scale-95 shadow-sm"
+              className="h-9 px-4 bg-white border border-slate-200 rounded-lg text-[11px] font-semibold tracking-wide text-slate-600 hover:bg-slate-50 transition-all shadow-sm"
             >
-              Return
+              Back
             </button>
           )}
 
           <button
             onClick={() => setIsCreateFolderOpen(true)}
-            className="h-12 px-6 bg-white border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-900 hover:border-blue-500 hover:text-blue-600 transition-all active:scale-95 shadow-sm flex items-center gap-2"
+            className="h-9 px-4 bg-white border border-slate-200 rounded-lg text-[11px] font-semibold tracking-wide text-slate-900 hover:border-blue-500 hover:text-blue-600 transition-all shadow-sm flex items-center gap-2"
           >
-            <span className="text-lg leading-none">+</span> New Node
+            <span className="text-sm leading-none">+</span> New Folder
           </button>
 
-          <label className="h-12 px-8 bg-blue-600 rounded-xl text-[10px] font-black uppercase tracking-widest text-white hover:bg-blue-700 transition-all cursor-pointer flex items-center justify-center shadow-lg shadow-blue-500/25 active:scale-95">
-            Ingest Asset
-
-            <input
-              type="file"
-              className="hidden"
-              onChange={handleFileSelect}
-            />
+          <label className="h-9 px-5 bg-blue-600 rounded-lg text-[11px] font-semibold tracking-wide text-white hover:bg-blue-700 transition-all cursor-pointer flex items-center justify-center shadow-sm">
+            Upload File
+            <input type="file" className="hidden" onChange={handleFileSelect} />
           </label>
         </div>
       </div>
 
-      {/* Synchronisation Status */}
       {error && (
-        <div className="bg-red-50 border border-red-100 rounded-2xl px-6 py-4 text-red-600 text-xs font-bold mb-8 animate-in fade-in slide-in-from-top-4">
-          <span className="mr-2">⚠️</span> {error}
+        <div className="bg-red-50 border border-red-100 rounded-lg px-4 py-3 text-red-600 text-sm font-semibold mb-5">
+          {error}
         </div>
       )}
 
       {loading ? (
-        <div className="py-24 text-center">
-          <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Accessing Data Segments...</p>
+        <div className="py-16 text-center">
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+            Loading files...
+          </p>
         </div>
       ) : (
-        <div className="space-y-10 lg:space-y-16">
-          {/* Folders Navigation */}
+        <div className="space-y-6 lg:space-y-5">
           {!selectedFolder && (
             <section>
-              <div className="flex items-center justify-between mb-6 px-2">
-                <h2 className="text-[11px] uppercase tracking-[0.3em] text-slate-400 font-black">
-                  Data Partitions
+              <div className="flex items-center justify-between mb-3 px-1">
+                <h2 className="text-[11px] uppercase tracking-wide text-slate-400 font-semibold">
+                  Folders
                 </h2>
 
-                <span className="px-3 py-1 rounded-full bg-slate-100 text-[9px] font-black text-slate-500 uppercase tracking-widest">
-                  {folders.length} Identified
+                <span className="px-2.5 py-1 rounded-md bg-slate-100 text-[10px] font-semibold text-slate-500">
+                  {folders.length} folders
                 </span>
               </div>
 
               {folders.length === 0 ? (
-                <div className="rounded-[32px] border-2 border-dashed border-slate-200 p-16 text-center">
-                  <p className="text-slate-400 font-bold text-sm">Zero partitions established. Use "New Node" to begin.</p>
+                <div className="rounded-xl border border-dashed border-slate-200 p-10 text-center bg-white">
+                  <p className="text-slate-400 font-semibold text-sm">
+                    No folders yet. Create a new folder to begin.
+                  </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 lg:gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3">
                   {folders.map((folder) => {
                     const folderId = getId(folder);
 
@@ -247,37 +215,33 @@ export default function FileExplorer() {
                       <div
                         key={folderId}
                         onClick={() => setSelectedFolder(folder)}
-                        className="group bg-white border border-slate-200 rounded-[2rem] p-6 hover:border-blue-500 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 cursor-pointer relative overflow-hidden"
+                        className="group bg-white border border-slate-200 rounded-xl p-4 lg:p-3 hover:border-blue-300 hover:shadow-sm transition-all duration-200 cursor-pointer relative overflow-hidden"
                       >
-                        <div className="relative z-10 flex flex-col items-center sm:items-start">
-                          <div className="w-14 h-14 bg-blue-50 border border-blue-100 rounded-2xl flex items-center justify-center text-2xl mb-4 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500">
+                        <div className="relative z-10 flex items-start gap-3">
+                          <div className="w-10 h-10 lg:w-9 lg:h-9 bg-blue-50 border border-blue-100 rounded-lg flex items-center justify-center text-lg shrink-0">
                             📁
                           </div>
 
-                          <div className="w-full text-center sm:text-left">
-                            <h3 className="text-sm font-black text-slate-900 truncate mb-1 group-hover:text-blue-600 transition-colors">
-                              {folder.name || "Unnamed Partition"}
+                          <div className="min-w-0">
+                            <h3 className="text-sm font-semibold text-slate-900 truncate mb-1 group-hover:text-blue-600 transition-colors">
+                              {folder.name || "Unnamed Folder"}
                             </h3>
 
-                            <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em]">
-                              Node ID: {String(folderId).slice(-6).toUpperCase()}
+                            <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">
+                              ID: {String(folderId).slice(-6).toUpperCase()}
                             </p>
                           </div>
                         </div>
 
                         <button
-                          onClick={(e) =>
-                            handleDeleteFolder(folderId, e)
-                          }
-                          className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 h-8 w-8 rounded-xl hover:bg-red-50 text-red-500 flex items-center justify-center transition-all duration-300"
-                          title="Purge Node"
+                          onClick={(e) => handleDeleteFolder(folderId, e)}
+                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 h-7 w-7 rounded-md hover:bg-red-50 text-red-500 flex items-center justify-center transition-all duration-200"
+                          title="Delete Folder"
                         >
-                          <svg size={16} className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
                           </svg>
                         </button>
-
-                        <div className="absolute bottom-0 left-0 w-full h-1 bg-blue-600 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
                       </div>
                     );
                   })}
@@ -286,104 +250,102 @@ export default function FileExplorer() {
             </section>
           )}
 
-          {/* Files Archive */}
           <section>
-            <div className="flex items-center justify-between mb-6 px-2">
-              <h2 className="text-[11px] uppercase tracking-[0.3em] text-slate-400 font-black">
-                {selectedFolder
-                  ? `Segment: ${selectedFolder.name}`
-                  : "All Assets Archive"}
+            <div className="flex items-center justify-between mb-3 px-1">
+              <h2 className="text-[11px] uppercase tracking-wide text-slate-400 font-semibold">
+                {selectedFolder ? selectedFolder.name : "Files"}
               </h2>
 
-              <span className="px-3 py-1 rounded-full bg-slate-100 text-[9px] font-black text-slate-500 uppercase tracking-widest">
-                {visibleFiles.length} Encrypted Assets
+              <span className="px-2.5 py-1 rounded-md bg-slate-100 text-[10px] font-semibold text-slate-500">
+                {visibleFiles.length} files
               </span>
             </div>
 
-            {/* Premium Table - Hidden on smaller mobile, Scrollable on tablets */}
-            <div className="hidden sm:block bg-white border border-slate-200 rounded-[32px] overflow-hidden shadow-xl shadow-slate-200/40">
+            <div className="hidden sm:block bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
               <div className="overflow-x-auto custom-scrollbar">
                 <table className="w-full border-collapse">
                   <thead>
-                    <tr className="bg-slate-50/50 text-[10px] uppercase tracking-[0.25em] text-slate-400 font-black border-b border-slate-100">
-                      <th className="px-8 py-5 text-left">Asset Identification</th>
-                      <th className="px-8 py-5 text-left">Payload</th>
-                      <th className="px-8 py-5 text-left">Custodian</th>
-                      <th className="px-8 py-5 text-left">Revision</th>
-                      <th className="px-8 py-5 text-right">Operations</th>
+                    <tr className="bg-slate-50 text-[11px] tracking-wide text-slate-400 font-semibold border-b border-slate-100">
+                      <th className="px-4 py-3 text-left">File Name</th>
+                      <th className="px-4 py-3 text-left">Size</th>
+                      <th className="px-4 py-3 text-left">Uploaded By</th>
+                      <th className="px-4 py-3 text-left">Version</th>
+                      <th className="px-4 py-3 text-right">Action</th>
                     </tr>
                   </thead>
 
-                  <tbody className="divide-y divide-slate-50">
+                  <tbody className="divide-y divide-slate-100">
                     {visibleFiles.map((file) => {
                       const fileId = getId(file);
 
                       return (
-                        <tr
-                          key={fileId}
-                          className="group hover:bg-slate-50/50 transition-all duration-300"
-                        >
-                          <td className="px-8 py-5">
-                            <Link
-                              to={`/files/${fileId}`}
-                              className="flex items-center gap-4"
-                            >
-                              <div className="w-11 h-11 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center text-xl group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500">
+                        <tr key={fileId} className="group hover:bg-slate-50 transition-all duration-200">
+                          <td className="px-4 py-3">
+                            <Link to={`/files/${fileId}`} className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-sm shrink-0">
                                 📄
                               </div>
 
                               <div className="min-w-0">
-                                <p className="text-[13px] font-black text-slate-900 truncate group-hover:text-blue-600 transition-colors">
-                                  {file.name || file.originalName || "Unnamed Asset"}
+                                <p className="text-sm font-semibold text-slate-900 truncate group-hover:text-blue-600 transition-colors">
+                                  {file.name || file.originalName || "Unnamed File"}
                                 </p>
 
-                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">
-                                  System Document
+                                <p className="text-[10px] text-slate-400 font-medium mt-0.5">
+                                  Document
                                 </p>
                               </div>
                             </Link>
                           </td>
 
-                          <td className="px-8 py-5 text-[11px] font-black text-slate-500 uppercase tracking-widest">
+                          <td className="px-4 py-3 text-xs font-semibold text-slate-500">
                             {formatFileSize(file.size)}
                           </td>
 
-                          <td className="px-8 py-5">
+                          <td className="px-4 py-3">
                             <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-[8px] font-black text-slate-500">
+                              <div className="w-5 h-5 rounded-md bg-slate-200 flex items-center justify-center text-[9px] font-semibold text-slate-500">
                                 {(file.uploader?.name || "U").charAt(0)}
                               </div>
-                              <span className="text-[11px] font-bold text-slate-600 italic">
+                              <span className="text-xs font-medium text-slate-600">
                                 {file.uploader?.name || file.uploadedBy?.name || "System"}
                               </span>
                             </div>
                           </td>
 
-                          <td className="px-8 py-5">
-                            <span className="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-[10px] font-black uppercase tracking-widest border border-blue-100">
+                          <td className="px-4 py-3">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 text-[11px] font-semibold border border-blue-100">
                               v{file.currentVersion || file.version || 1}
                             </span>
                           </td>
 
-                          <td className="px-8 py-5 text-right">
+                          <td className="px-4 py-3 text-right">
                             <button
-                              onClick={() =>
-                                handleDeleteFile(fileId)
-                              }
-                              className="h-9 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest text-red-500 hover:bg-red-50 transition-all active:scale-95"
+                              onClick={() => handleDeleteFile(fileId)}
+                              className="h-7 px-3 rounded-md text-[11px] font-semibold text-red-600 hover:bg-red-50 transition-all active:scale-95"
                             >
-                              Purge
+                              Delete
                             </button>
                           </td>
                         </tr>
                       );
                     })}
+
+                    {visibleFiles.length === 0 && (
+                      <tr>
+                        <td colSpan="5" className="px-6 py-10 text-center">
+                          <p className="text-sm font-semibold text-slate-400">
+                            No files found.
+                          </p>
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
             </div>
 
-            {/* Mobile Cards - Only on very small screens */}
+            {/* Mobile unchanged */}
             <div className="sm:hidden space-y-4">
               {visibleFiles.map((file) => {
                 const fileId = getId(file);
@@ -393,10 +355,7 @@ export default function FileExplorer() {
                     key={fileId}
                     className="bg-white border border-slate-200 rounded-[2.5rem] p-6 shadow-sm active:scale-[0.98] transition-transform"
                   >
-                    <Link
-                      to={`/files/${fileId}`}
-                      className="flex flex-col gap-4"
-                    >
+                    <Link to={`/files/${fileId}`} className="flex flex-col gap-4">
                       <div className="flex items-start gap-4">
                         <div className="w-14 h-14 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-2xl shrink-0">
                           📄
@@ -489,11 +448,7 @@ function formatFileSize(bytes = 0) {
   if (!bytes) return "0 B";
 
   const sizes = ["B", "KB", "MB", "GB", "TB"];
-
-  const i = Math.min(
-    Math.floor(Math.log(bytes) / Math.log(1024)),
-    sizes.length - 1
-  );
+  const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), sizes.length - 1);
 
   return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${sizes[i]}`;
 }

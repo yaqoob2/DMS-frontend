@@ -8,13 +8,13 @@ export default function StorageDashboard() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
+    const visibleFilesLimit = 3;
+
     const formatSize = (bytes) => {
         if (!bytes && bytes !== 0) return "-";
-
         const kb = bytes / 1024;
         const mb = kb / 1024;
         const gb = mb / 1024;
-
         if (gb >= 1) return `${gb.toFixed(2)} GB`;
         if (mb >= 1) return `${mb.toFixed(2)} MB`;
         if (kb >= 1) return `${kb.toFixed(2)} KB`;
@@ -51,7 +51,9 @@ export default function StorageDashboard() {
         return (
             <div className="p-8 text-center text-slate-500 animate-pulse">
                 <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                <p className="text-[10px] font-black uppercase tracking-[0.2em]">Calculating System Metrics...</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em]">
+                    Calculating System Metrics...
+                </p>
             </div>
         );
     }
@@ -61,73 +63,70 @@ export default function StorageDashboard() {
     const remaining = summary?.remainingBytes || 0;
     const percentage = Number(summary?.usagePercentage || 0);
     const status = summary?.status || "OPTIMAL";
+    const visibleFiles = largestFiles.slice(0, visibleFilesLimit);
 
     return (
-        <div className="w-full max-w-full px-4 sm:px-6 lg:px-8 py-6 lg:py-8 bg-[#f8fafc] min-h-full overflow-x-hidden">
-            {/* Header Section */}
-            <div className="mb-8 lg:mb-12">
-                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-slate-900 leading-tight">
+        <div className="w-full max-w-full px-4 sm:px-6 lg:px-6 py-6 lg:py-5 bg-[#f8fafc] min-h-full overflow-x-hidden">
+            <div className="mb-6 lg:mb-5">
+                <h1 className="text-2xl sm:text-3xl lg:text-[30px] font-black tracking-tight text-slate-900 leading-tight">
                     System <span className="text-blue-600">Metrics</span>
                 </h1>
 
-                <p className="mt-2 text-sm sm:text-base text-slate-500 font-medium">
-                    Monitor real-time storage allocation, payload distribution, and archive activity.
+                <p className="mt-1 text-sm text-slate-500 font-medium">
+                    Monitor storage usage, largest files, and monthly activity.
                 </p>
             </div>
 
-            {/* Error Notification */}
             {error && (
-                <div className="rounded-2xl border border-red-100 bg-red-50 px-6 py-4 text-xs sm:text-sm text-red-600 font-bold mb-8 animate-in fade-in slide-in-from-top-4">
+                <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600 font-bold mb-5">
                     <span className="mr-2">⚠️</span> {error}
                 </div>
             )}
 
-            {/* Storage Summary Section */}
-            <section className="rounded-[32px] border border-slate-200 bg-white p-6 sm:p-10 shadow-xl shadow-slate-200/40 mb-8 lg:mb-12 relative overflow-hidden">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-10 relative z-10">
-                    {/* Left: Raw Data */}
-                    <div className="flex-1">
-                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-4">
-                            Storage Allocation
+            <section className="rounded-[18px] border border-slate-200 bg-white p-4 shadow-sm mb-5">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+                    <div>
+                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 mb-2">
+                            Storage Usage
                         </p>
 
-                        <div className="flex flex-col sm:flex-row sm:items-end gap-2 sm:gap-4 mb-2">
-                            <h2 className="text-4xl sm:text-5xl font-black text-slate-900 leading-none">
-                                {formatSize(used).split(' ')[0]}
-                                <span className="text-xl sm:text-2xl text-slate-400 ml-1 font-bold">
-                                    {formatSize(used).split(' ')[1]}
+                        <div className="flex items-end gap-2">
+                            <h2 className="text-3xl font-black text-slate-900 leading-none">
+                                {formatSize(used).split(" ")[0]}
+                                <span className="text-lg text-slate-400 ml-1">
+                                    {formatSize(used).split(" ")[1]}
                                 </span>
                             </h2>
-                            <div className="h-6 w-px bg-slate-200 hidden sm:block mb-1"></div>
-                            <p className="text-sm font-black text-blue-600 uppercase tracking-widest mb-1">
-                                of {formatSize(limit)} Total Capacity
+
+                            <p className="text-[11px] font-black text-blue-600 uppercase tracking-widest mb-1">
+                                / {formatSize(limit)}
                             </p>
                         </div>
 
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                            Available Buffer: <span className="text-slate-900">{formatSize(remaining)}</span>
+                        <p className="text-[11px] font-bold text-slate-400 mt-2 uppercase tracking-widest">
+                            Remaining:{" "}
+                            <span className="text-slate-900">{formatSize(remaining)}</span>
                         </p>
                     </div>
 
-                    {/* Right: Visual Progress */}
-                    <div className="w-full lg:w-[400px]">
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em]">
-                                Sector Usage
+                    <div className="w-full lg:w-[320px]">
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">
+                                Usage
                             </span>
 
-                            <span className="text-xl font-black text-slate-900">
+                            <span className="text-base font-black text-slate-900">
                                 {percentage.toFixed(1)}%
                             </span>
                         </div>
 
-                        <div className="h-4 w-full rounded-full bg-slate-100 p-1 shadow-inner">
+                        <div className="h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
                             <div
-                                className={`h-full rounded-full transition-all duration-1000 ease-out shadow-lg ${percentage >= 95
-                                        ? "bg-red-600 shadow-red-500/30"
+                                className={`h-full rounded-full transition-all duration-700 ${percentage >= 95
+                                        ? "bg-red-600"
                                         : percentage >= 80
-                                            ? "bg-yellow-500 shadow-yellow-500/30"
-                                            : "bg-blue-600 shadow-blue-500/30"
+                                            ? "bg-yellow-500"
+                                            : "bg-blue-600"
                                     }`}
                                 style={{
                                     width: `${Math.max(
@@ -138,153 +137,126 @@ export default function StorageDashboard() {
                             />
                         </div>
 
-                        <div className="mt-6 flex items-center justify-between">
-                            <span
-                                className={`inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border ${percentage >= 95
-                                        ? "bg-red-50 text-red-700 border-red-100"
-                                        : percentage >= 80
-                                            ? "bg-yellow-50 text-yellow-700 border-yellow-100"
-                                            : "bg-blue-50 text-blue-700 border-blue-100"
-                                    }`}
-                            >
-                                <span className={`w-1.5 h-1.5 rounded-full mr-2 ${percentage >= 95 ? "bg-red-600" : percentage >= 80 ? "bg-yellow-600" : "bg-blue-600"}`}></span>
-                                SYSTEM {status.toUpperCase()}
+                        <div className="mt-3 flex items-center justify-between">
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest bg-blue-50 text-blue-700 border border-blue-100">
+                                System {status.toUpperCase()}
                             </span>
-                            
-                            <button 
+
+                            <button
                                 onClick={loadStorageData}
-                                className="text-[10px] font-black text-slate-400 hover:text-slate-900 transition-colors uppercase tracking-widest"
+                                className="text-[9px] font-black text-slate-400 hover:text-blue-600 uppercase tracking-widest"
                             >
-                                Refresh Sync
+                                Refresh
                             </button>
                         </div>
                     </div>
                 </div>
-
-                {/* Decorative Background Elements */}
-                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50/30 rounded-full blur-3xl -mr-32 -mt-32"></div>
-                <div className="absolute bottom-0 left-0 w-64 h-64 bg-slate-50/50 rounded-full blur-3xl -ml-32 -mb-32"></div>
             </section>
 
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 lg:gap-12">
-                {/* Largest Files Section */}
-                <section className="rounded-[32px] border border-slate-200 bg-white overflow-hidden shadow-xl shadow-slate-200/40">
-                    <div className="px-8 py-6 border-b border-slate-100 bg-slate-50/30">
-                        <h2 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em]">
-                            Payload Distribution
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+                <section className="rounded-[18px] border border-slate-200 bg-white overflow-hidden shadow-sm">
+                    <div className="px-4 py-3 border-b border-slate-100">
+                        <h2 className="text-sm font-black text-slate-900">
+                            Largest Files
                         </h2>
-                        <p className="text-[14px] font-black text-slate-900 mt-1">High-Consumption Assets</p>
+                        <p className="text-[11px] text-slate-400 font-semibold mt-0.5">
+                            Showing top {visibleFiles.length}
+                        </p>
                     </div>
 
-                    {largestFiles.length === 0 ? (
-                        <div className="px-8 py-16 text-center">
-                            <p className="text-slate-400 font-black uppercase tracking-widest text-xs">No assets identified.</p>
+                    {visibleFiles.length === 0 ? (
+                        <div className="px-5 py-10 text-center text-slate-400 font-bold text-sm">
+                            No files found.
                         </div>
                     ) : (
-                        <div className="overflow-x-auto custom-scrollbar">
-                            <table className="w-full border-collapse">
-                                <thead>
-                                    <tr className="bg-slate-50/20 text-[9px] uppercase tracking-[0.25em] text-slate-400 font-black border-b border-slate-50">
-                                        <th className="px-8 py-4 text-left">Asset Identity</th>
-                                        <th className="px-8 py-4 text-left">Payload</th>
-                                        <th className="px-8 py-4 text-right">Epoch</th>
-                                    </tr>
-                                </thead>
+                        <div className="divide-y divide-slate-100">
+                            {visibleFiles.map((file) => (
+                                <div
+                                    key={file._id}
+                                    className="px-4 py-3 flex items-center justify-between gap-3 hover:bg-slate-50 transition"
+                                >
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 text-sm">
+                                            📄
+                                        </div>
 
-                                <tbody className="divide-y divide-slate-50">
-                                    {largestFiles.map((file) => (
-                                        <tr
-                                            key={file._id}
-                                            className="group hover:bg-slate-50/50 transition-all duration-300"
-                                        >
-                                            <td className="px-8 py-4">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center text-lg group-hover:scale-110 transition-transform duration-500">
-                                                        📄
-                                                    </div>
-                                                    <div className="min-w-0">
-                                                        <p className="text-[13px] font-black text-slate-900 truncate max-w-[200px]">
-                                                            {file.originalName || file.name || "UNNAMED"}
-                                                        </p>
-                                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                                                            FILE ID: {String(file._id).slice(-6).toUpperCase()}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </td>
+                                        <div className="min-w-0">
+                                            <p className="text-sm font-black text-slate-900 truncate max-w-[220px]">
+                                                {file.originalName || file.name || "Unnamed file"}
+                                            </p>
+                                            <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">
+                                                ID: {String(file._id).slice(-6).toUpperCase()}
+                                            </p>
+                                        </div>
+                                    </div>
 
-                                            <td className="px-8 py-4 text-[11px] font-black text-slate-500 uppercase tracking-widest">
-                                                {formatSize(file.size)}
-                                            </td>
-
-                                            <td className="px-8 py-4 text-right text-[11px] font-black text-slate-400 uppercase tracking-widest">
-                                                {file.createdAt ? new Date(file.createdAt).toLocaleDateString() : "-"}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    <div className="text-right shrink-0">
+                                        <p className="text-xs font-black text-slate-700">
+                                            {formatSize(file.size)}
+                                        </p>
+                                        <p className="text-[9px] font-bold text-slate-400 mt-0.5">
+                                            {file.createdAt
+                                                ? new Date(file.createdAt).toLocaleDateString()
+                                                : "-"}
+                                        </p>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     )}
                 </section>
 
-                {/* Monthly Activity Section */}
-                <section className="rounded-[32px] border border-slate-200 bg-white overflow-hidden shadow-xl shadow-slate-200/40">
-                    <div className="px-8 py-6 border-b border-slate-100 bg-slate-50/30">
-                        <h2 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em]">
-                            System Throughput
+                <section className="rounded-[18px] border border-slate-200 bg-white overflow-hidden shadow-sm">
+                    <div className="px-4 py-3 border-b border-slate-100">
+                        <h2 className="text-sm font-black text-slate-900">
+                            Monthly Activity
                         </h2>
-                        <p className="text-[14px] font-black text-slate-900 mt-1">Operational Flux (Monthly)</p>
+                        <p className="text-[11px] text-slate-400 font-semibold mt-0.5">
+                            Upload and download summary
+                        </p>
                     </div>
 
                     {monthlyActivity.length === 0 ? (
-                        <div className="px-8 py-16 text-center">
-                            <p className="text-slate-400 font-black uppercase tracking-widest text-xs">No activity logged.</p>
+                        <div className="px-5 py-10 text-center text-slate-400 font-bold text-sm">
+                            No activity logged.
                         </div>
                     ) : (
-                        <div className="overflow-x-auto custom-scrollbar">
-                            <table className="w-full border-collapse">
-                                <thead>
-                                    <tr className="bg-slate-50/20 text-[9px] uppercase tracking-[0.25em] text-slate-400 font-black border-b border-slate-50">
-                                        <th className="px-8 py-4 text-left">Temporal Node</th>
-                                        <th className="px-8 py-4 text-left">Ingress</th>
-                                        <th className="px-8 py-4 text-left">Egress</th>
-                                    </tr>
-                                </thead>
+                        <div className="divide-y divide-slate-100">
+                            {monthlyActivity.slice(0, 3).map((item, index) => (
+                                <div
+                                    key={index}
+                                    className="px-4 py-3 flex items-center justify-between gap-3 hover:bg-slate-50 transition"
+                                >
+                                    <div>
+                                        <p className="text-sm font-black text-slate-900">
+                                            {item.month || item._id || "Unknown"}
+                                        </p>
+                                        <p className="text-[11px] text-slate-400 font-semibold mt-0.5">
+                                            Monthly repository movement
+                                        </p>
+                                    </div>
 
-                                <tbody className="divide-y divide-slate-50">
-                                    {monthlyActivity.map((item, index) => (
-                                        <tr
-                                            key={index}
-                                            className="group hover:bg-slate-50/50 transition-all duration-300"
-                                        >
-                                            <td className="px-8 py-4">
-                                                <p className="text-[13px] font-black text-slate-900 uppercase tracking-tight">
-                                                    {item.month || item._id || "UNKNOWN"}
-                                                </p>
-                                            </td>
+                                    <div className="flex items-center gap-3 text-right">
+                                        <div>
+                                            <p className="text-xs font-black text-blue-600">
+                                                {item.uploads || 0}
+                                            </p>
+                                            <p className="text-[9px] font-bold text-slate-400 uppercase">
+                                                Uploads
+                                            </p>
+                                        </div>
 
-                                            <td className="px-8 py-4">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="w-2 h-2 rounded-full bg-blue-600"></span>
-                                                    <span className="text-[11px] font-black text-blue-600 uppercase tracking-widest">
-                                                        {item.uploads || 0} UPLOADS
-                                                    </span>
-                                                </div>
-                                            </td>
-
-                                            <td className="px-8 py-4">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="w-2 h-2 rounded-full bg-slate-400"></span>
-                                                    <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
-                                                        {item.downloads || 0} DOWNLOADS
-                                                    </span>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                        <div>
+                                            <p className="text-xs font-black text-slate-700">
+                                                {item.downloads || 0}
+                                            </p>
+                                            <p className="text-[9px] font-bold text-slate-400 uppercase">
+                                                Downloads
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     )}
                 </section>
