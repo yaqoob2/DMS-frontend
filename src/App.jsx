@@ -1,19 +1,19 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
-import ProtectedRoute from './routes/ProtectedRoute';
-import AppLayout from './layouts/AppLayout';
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+import ProtectedRoute from "./routes/ProtectedRoute";
+import AppLayout from "./layouts/AppLayout";
 
-import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import FileExplorer from './pages/FileExplorer';
-import FileDetails from './pages/FileDetails';
-import DeletedItems from './pages/DeletedItems';
-import StorageDashboard from './pages/StorageDashboard';
-import SearchPage from './pages/SearchPage';
-import ActivityPage from './pages/ActivityPage';
-import UserManagement from './pages/UserManagement';
-import FolderPermissions from './pages/FolderPermissions';
-import DeletedItems from './pages/DeletedItems';
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import FileExplorer from "./pages/FileExplorer";
+import FileDetails from "./pages/FileDetails";
+import DeletedItems from "./pages/DeletedItems";
+import StorageDashboard from "./pages/StorageDashboard";
+import SearchPage from "./pages/SearchPage";
+import ActivityPage from "./pages/ActivityPage";
+import UserManagement from "./pages/UserManagement";
+import FolderPermissions from "./pages/FolderPermissions";
+
 
 export default function App() {
   return (
