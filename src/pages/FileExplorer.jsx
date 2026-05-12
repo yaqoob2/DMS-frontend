@@ -23,8 +23,18 @@ export default function FileExplorer() {
         fileService.getAll().catch(() => ({ data: [] })),
       ]);
 
-      setFolders(Array.isArray(foldersRes.data) ? foldersRes.data : foldersRes.data?.folders || []);
-      setFiles(Array.isArray(filesRes.data) ? filesRes.data : filesRes.data?.files || []);
+      setFolders(
+        Array.isArray(foldersRes.data)
+          ? foldersRes.data
+          : foldersRes.data?.folders || []
+      );
+
+      setFiles(
+        Array.isArray(filesRes.data)
+          ? filesRes.data
+          : filesRes.data?.files || []
+      );
+
       setError("");
     } catch {
       setError("Synchronisation with the central vault failed.");
@@ -39,6 +49,24 @@ export default function FileExplorer() {
 
   const getId = (item) => item?.id || item?._id;
   const selectedFolderId = getId(selectedFolder);
+
+  const getVisibleFolders = () => {
+    return folders.filter((folder) => {
+      const parentId = folder.parentFolderId?._id || folder.parentFolderId;
+
+      if (selectedFolder) {
+        return String(parentId) === String(selectedFolderId);
+      }
+
+      if (!parentId) return true;
+
+      const parentExists = folders.some(
+        (f) => String(getId(f)) === String(parentId)
+      );
+
+      return !parentExists;
+    });
+  };
 
   const visibleFiles = selectedFolder
     ? files.filter((file) => {
@@ -65,7 +93,12 @@ export default function FileExplorer() {
     e.target.value = "";
   };
 
-  const handleUpload = async (file, commitMessage, folderId = null, onProgress) => {
+  const handleUpload = async (
+    file,
+    commitMessage,
+    folderId = null,
+    onProgress
+  ) => {
     try {
       const finalFolderId = selectedFolderId || folderId;
       const formData = new FormData();
@@ -73,7 +106,9 @@ export default function FileExplorer() {
       formData.append("file", file);
       formData.append("commitMessage", commitMessage);
 
-      if (finalFolderId) formData.append("folderId", finalFolderId);
+      if (finalFolderId) {
+        formData.append("folderId", finalFolderId);
+      }
 
       await fileService.upload(formData, onProgress);
 
@@ -87,17 +122,25 @@ export default function FileExplorer() {
 
   const handleCreateFolder = async (name) => {
     try {
-      await folderService.create({ name });
+      await folderService.create({
+        name,
+        parentFolderId: selectedFolderId || null,
+      });
+
       fetchData();
     } catch (err) {
       alert(err.response?.data?.message || "Folder creation refused");
     }
   };
 
-  const handleDeleteFolder = async (id, e) => {
-    e.stopPropagation();
+  const handleDeleteFolder = async (id) => {
+    if (!id) return;
 
-    if (!window.confirm("Permanent deletion of this folder? This action is audited.")) return;
+    const confirmDelete = window.confirm(
+      "Permanent deletion of this folder? This action is audited."
+    );
+
+    if (!confirmDelete) return;
 
     try {
       await folderService.delete(id, {
@@ -108,6 +151,10 @@ export default function FileExplorer() {
       if (String(selectedFolderId) === String(id)) {
         setSelectedFolder(null);
       }
+
+      setFolders((prev) =>
+        prev.filter((folder) => String(getId(folder)) !== String(id))
+      );
 
       fetchData();
     } catch (err) {
@@ -139,7 +186,11 @@ export default function FileExplorer() {
           </h1>
 
           <nav className="flex items-center gap-2 mt-2 lg:mt-1 text-[11px] lg:text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-            <button onClick={() => setSelectedFolder(null)} className="hover:text-blue-600 transition-colors">
+            <button
+              type="button"
+              onClick={() => setSelectedFolder(null)}
+              className="hover:text-blue-600 transition-colors"
+            >
               Home
             </button>
             <span className="text-slate-300">/</span>
@@ -152,6 +203,7 @@ export default function FileExplorer() {
         <div className="flex flex-wrap items-center gap-2">
           {selectedFolder && (
             <button
+              type="button"
               onClick={() => setSelectedFolder(null)}
               className="h-9 px-4 bg-white border border-slate-200 rounded-lg text-[11px] font-semibold tracking-wide text-slate-600 hover:bg-slate-50 transition-all shadow-sm"
             >
@@ -160,6 +212,7 @@ export default function FileExplorer() {
           )}
 
           <button
+            type="button"
             onClick={() => setIsCreateFolderOpen(true)}
             className="h-9 px-4 bg-white border border-slate-200 rounded-lg text-[11px] font-semibold tracking-wide text-slate-900 hover:border-blue-500 hover:text-blue-600 transition-all shadow-sm flex items-center gap-2"
           >
@@ -188,67 +241,80 @@ export default function FileExplorer() {
         </div>
       ) : (
         <div className="space-y-6 lg:space-y-5">
-          {!selectedFolder && (
-            <section>
-              <div className="flex items-center justify-between mb-3 px-1">
-                <h2 className="text-[11px] uppercase tracking-wide text-slate-400 font-semibold">
-                  Folders
-                </h2>
+          <section>
+            <div className="flex items-center justify-between mb-3 px-1">
+              <h2 className="text-[11px] uppercase tracking-wide text-slate-400 font-semibold">
+                Folders
+              </h2>
 
-                <span className="px-2.5 py-1 rounded-md bg-slate-100 text-[10px] font-semibold text-slate-500">
-                  {folders.length} folders
-                </span>
+              <span className="px-2.5 py-1 rounded-md bg-slate-100 text-[10px] font-semibold text-slate-500">
+                {getVisibleFolders().length} folders
+              </span>
+            </div>
+
+            {getVisibleFolders().length === 0 ? (
+              <div className="rounded-xl border border-dashed border-slate-200 p-10 text-center bg-white">
+                <p className="text-slate-400 font-semibold text-sm">
+                  No folders yet. Create a new folder to begin.
+                </p>
               </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3">
+                {getVisibleFolders().map((folder) => {
+                  const folderId = getId(folder);
 
-              {folders.length === 0 ? (
-                <div className="rounded-xl border border-dashed border-slate-200 p-10 text-center bg-white">
-                  <p className="text-slate-400 font-semibold text-sm">
-                    No folders yet. Create a new folder to begin.
-                  </p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3">
-                  {folders.map((folder) => {
-                    const folderId = getId(folder);
-
-                    return (
-                      <div
-                        key={folderId}
-                        onClick={() => setSelectedFolder(folder)}
-                        className="group bg-white border border-slate-200 rounded-xl p-4 lg:p-3 hover:border-blue-300 hover:shadow-sm transition-all duration-200 cursor-pointer relative overflow-hidden"
-                      >
-                        <div className="relative z-10 flex items-start gap-3">
-                          <div className="w-10 h-10 lg:w-9 lg:h-9 bg-blue-50 border border-blue-100 rounded-lg flex items-center justify-center text-lg shrink-0">
-                            📁
-                          </div>
-
-                          <div className="min-w-0">
-                            <h3 className="text-sm font-semibold text-slate-900 truncate mb-1 group-hover:text-blue-600 transition-colors">
-                              {folder.name || "Unnamed Folder"}
-                            </h3>
-
-                            <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">
-                              ID: {String(folderId).slice(-6).toUpperCase()}
-                            </p>
-                          </div>
+                  return (
+                    <div
+                      key={folderId}
+                      onClick={() => setSelectedFolder(folder)}
+                      className="group bg-white border border-slate-200 rounded-xl p-4 lg:p-3 hover:border-blue-300 hover:shadow-sm transition-all duration-200 cursor-pointer relative overflow-hidden"
+                    >
+                      <div className="relative z-10 flex items-start gap-3 pr-8">
+                        <div className="w-10 h-10 lg:w-9 lg:h-9 bg-blue-50 border border-blue-100 rounded-lg flex items-center justify-center text-lg shrink-0">
+                          📁
                         </div>
 
-                        <button
-                          onClick={(e) => handleDeleteFolder(folderId, e)}
-                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 h-7 w-7 rounded-md hover:bg-red-50 text-red-500 flex items-center justify-center transition-all duration-200"
-                          title="Delete Folder"
-                        >
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
+                        <div className="min-w-0">
+                          <h3 className="text-sm font-semibold text-slate-900 truncate mb-1 group-hover:text-blue-600 transition-colors">
+                            {folder.name || "Unnamed Folder"}
+                          </h3>
+
+                          <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">
+                            ID: {String(folderId).slice(-6).toUpperCase()}
+                          </p>
+                        </div>
                       </div>
-                    );
-                  })}
-                </div>
-              )}
-            </section>
-          )}
+
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleDeleteFolder(folderId);
+                        }}
+                        className="absolute top-2 right-2 z-50 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 h-7 w-7 rounded-md hover:bg-red-50 text-red-500 flex items-center justify-center transition-all duration-200"
+                        title="Delete Folder"
+                      >
+                        <svg
+                          className="w-3.5 h-3.5 pointer-events-none"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2.5}
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
 
           <section>
             <div className="flex items-center justify-between mb-3 px-1">
@@ -279,16 +345,24 @@ export default function FileExplorer() {
                       const fileId = getId(file);
 
                       return (
-                        <tr key={fileId} className="group hover:bg-slate-50 transition-all duration-200">
+                        <tr
+                          key={fileId}
+                          className="group hover:bg-slate-50 transition-all duration-200"
+                        >
                           <td className="px-4 py-3">
-                            <Link to={`/files/${fileId}`} className="flex items-center gap-3">
+                            <Link
+                              to={`/files/${fileId}`}
+                              className="flex items-center gap-3"
+                            >
                               <div className="w-8 h-8 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-sm shrink-0">
                                 📄
                               </div>
 
                               <div className="min-w-0">
                                 <p className="text-sm font-semibold text-slate-900 truncate group-hover:text-blue-600 transition-colors">
-                                  {file.name || file.originalName || "Unnamed File"}
+                                  {file.name ||
+                                    file.originalName ||
+                                    "Unnamed File"}
                                 </p>
 
                                 <p className="text-[10px] text-slate-400 font-medium mt-0.5">
@@ -308,7 +382,9 @@ export default function FileExplorer() {
                                 {(file.uploader?.name || "U").charAt(0)}
                               </div>
                               <span className="text-xs font-medium text-slate-600">
-                                {file.uploader?.name || file.uploadedBy?.name || "System"}
+                                {file.uploader?.name ||
+                                  file.uploadedBy?.name ||
+                                  "System"}
                               </span>
                             </div>
                           </td>
@@ -321,6 +397,7 @@ export default function FileExplorer() {
 
                           <td className="px-4 py-3 text-right">
                             <button
+                              type="button"
                               onClick={() => handleDeleteFile(fileId)}
                               className="h-7 px-3 rounded-md text-[11px] font-semibold text-red-600 hover:bg-red-50 transition-all active:scale-95"
                             >
@@ -345,7 +422,6 @@ export default function FileExplorer() {
               </div>
             </div>
 
-            {/* Mobile unchanged */}
             <div className="sm:hidden space-y-4">
               {visibleFiles.map((file) => {
                 const fileId = getId(file);
@@ -355,7 +431,10 @@ export default function FileExplorer() {
                     key={fileId}
                     className="bg-white border border-slate-200 rounded-[2.5rem] p-6 shadow-sm active:scale-[0.98] transition-transform"
                   >
-                    <Link to={`/files/${fileId}`} className="flex flex-col gap-4">
+                    <Link
+                      to={`/files/${fileId}`}
+                      className="flex flex-col gap-4"
+                    >
                       <div className="flex items-start gap-4">
                         <div className="w-14 h-14 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-2xl shrink-0">
                           📄
@@ -383,13 +462,17 @@ export default function FileExplorer() {
                             {(file.uploader?.name || "U").charAt(0)}
                           </div>
                           <span className="text-[10px] font-bold text-slate-500 italic">
-                            {file.uploader?.name || file.uploadedBy?.name || "System"}
+                            {file.uploader?.name ||
+                              file.uploadedBy?.name ||
+                              "System"}
                           </span>
                         </div>
 
                         <button
+                          type="button"
                           onClick={(e) => {
                             e.preventDefault();
+                            e.stopPropagation();
                             handleDeleteFile(fileId);
                           }}
                           className="text-[10px] font-black text-red-500 uppercase tracking-widest hover:underline"
@@ -448,7 +531,10 @@ function formatFileSize(bytes = 0) {
   if (!bytes) return "0 B";
 
   const sizes = ["B", "KB", "MB", "GB", "TB"];
-  const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), sizes.length - 1);
+  const i = Math.min(
+    Math.floor(Math.log(bytes) / Math.log(1024)),
+    sizes.length - 1
+  );
 
   return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${sizes[i]}`;
 }

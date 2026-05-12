@@ -34,8 +34,8 @@ export default function UploadModal({ isOpen, file, folders = [], onUpload, onCl
           </div>
 
           {!isUploading && (
-            <button 
-              onClick={onClose} 
+            <button
+              onClick={onClose}
               className="w-10 h-10 rounded-full bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-900 hover:border-slate-200 transition-all shadow-sm"
             >
               ✕
@@ -71,7 +71,7 @@ export default function UploadModal({ isOpen, file, folders = [], onUpload, onCl
                 <option value="">Root / System Base</option>
                 {folders.map((folder) => (
                   <option key={folder.id || folder._id} value={folder.id || folder._id}>
-                    {folder.name}
+                    {folder.path || folder.fullPath || folder.name}
                   </option>
                 ))}
               </select>
