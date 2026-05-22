@@ -88,6 +88,12 @@ export const safetyService = {
   getDeletedFiles: () => api.get('/safety/deleted-files'),
   getDeletedFolders: () => api.get('/safety/deleted-folders'),
   getBackupGuidance: () => api.get('/safety/backup-guidance'),
+  permanentDeleteFile: (id) => api.delete(`/safety/deleted-files/${id}`),
+  permanentDeleteFolder: (id) => api.delete(`/safety/deleted-folders/${id}`),
+  permanentDeleteAllFiles: () =>
+    api.post('/safety/deleted-files/permanent-delete-all', { confirm: true }),
+  permanentDeleteAllFolders: () =>
+    api.post('/safety/deleted-folders/permanent-delete-all', { confirm: true }),
 };
 
 export const userService = {

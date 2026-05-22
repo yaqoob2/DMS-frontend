@@ -1,11 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../api/axios";
+import { fileService, folderService, safetyService } from "../api/services";
 
 export default function DeletedItems() {
     const [deletedFiles, setDeletedFiles] = useState([]);
     const [deletedFolders, setDeletedFolders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [restoringId, setRestoringId] = useState(null);
+    const [deletingId, setDeletingId] = useState(null);
+    const [deletingAllFiles, setDeletingAllFiles] = useState(false);
+    const [deletingAllFolders, setDeletingAllFolders] = useState(false);
     const [error, setError] = useState("");
     const [filesPage, setFilesPage] = useState(1);
     const [foldersPage, setFoldersPage] = useState(1);
@@ -62,6 +66,117 @@ export default function DeletedItems() {
             alert("Failed to restore folder.");
         } finally {
             setRestoringId(null);
+        }
+    };
+
+    const permanentDeleteFile = async (fileId, fileName) => {
+        const label = fileName || "this file";
+        const confirmed = window.confirm(
+            `Permanently delete "${label}"? This cannot be undone.`
+        );
+        if (!confirmed) return;
+
+        try {
+            setDeletingId(fileId);
+            await fileService.delete(fileId, {
+                confirm: true,
+                reason: "Permanent removal from recovery archive",
+            });
+            await fetchDeletedItems();
+        } catch (err) {
+            console.error(err);
+            const msg =
+                err.response?.data?.message ||
+                err.response?.data?.error ||
+                "Failed to permanently delete file.";
+            alert(msg);
+        } finally {
+            setDeletingId(null);
+        }
+    };
+
+    const permanentDeleteFolder = async (folderId, folderName) => {
+        const label = folderName || "this folder";
+        const confirmed = window.confirm(
+            `Permanently delete "${label}"? This cannot be undone.`
+        );
+        if (!confirmed) return;
+
+        try {
+            setDeletingId(folderId);
+            await folderService.delete(folderId, {
+                confirm: true,
+                reason: "Permanent removal from recovery archive",
+            });
+            await fetchDeletedItems();
+        } catch (err) {
+            console.error(err);
+            const msg =
+                err.response?.data?.message ||
+                err.response?.data?.error ||
+                "Failed to permanently delete folder.";
+            alert(msg);
+        } finally {
+            setDeletingId(null);
+        }
+    };
+
+    const permanentDeleteAllFiles = async () => {
+        if (deletedFiles.length === 0) return;
+
+        const confirmed = window.confirm(
+            `Permanently delete all ${deletedFiles.length} deleted files you are allowed to remove? This cannot be undone.`
+        );
+        if (!confirmed) return;
+
+        try {
+            setDeletingAllFiles(true);
+            const res = await safetyService.permanentDeleteAllFiles();
+            const removed = res.data?.removedFileCount ?? 0;
+            const skipped = res.data?.skippedCount ?? 0;
+            alert(
+                `Removed ${removed} file(s).` +
+                    (skipped ? ` Skipped ${skipped} item(s) you cannot delete.` : "")
+            );
+            await fetchDeletedItems();
+        } catch (err) {
+            console.error(err);
+            alert(
+                err.response?.data?.message ||
+                    "Failed to permanently delete all files."
+            );
+        } finally {
+            setDeletingAllFiles(false);
+        }
+    };
+
+    const permanentDeleteAllFolders = async () => {
+        if (deletedFolders.length === 0) return;
+
+        const confirmed = window.confirm(
+            `Permanently delete all ${deletedFolders.length} deleted folders you are allowed to remove (including nested items)? This cannot be undone.`
+        );
+        if (!confirmed) return;
+
+        try {
+            setDeletingAllFolders(true);
+            const res = await safetyService.permanentDeleteAllFolders();
+            const removedFolders = res.data?.removedFolderCount ?? 0;
+            const removedFiles = res.data?.removedFileCount ?? 0;
+            const skipped = res.data?.skippedCount ?? 0;
+            alert(
+                `Removed ${removedFolders} folder(s) and ${removedFiles} related file(s).` +
+                    (skipped ? ` Skipped ${skipped} item(s) you cannot delete.` : "")
+            );
+            await fetchDeletedItems();
+        } catch (err) {
+            console.error(err);
+            alert(
+                err.response?.data?.message ||
+                    "Failed to permanently delete all folders."
+            );
+        } finally {
+            setDeletingAllFolders(false);
         }
     };
 
@@ -132,7 +247,7 @@ export default function DeletedItems() {
 
             {/* Deleted Files */}
             <section className="rounded-[32px] lg:rounded-[18px] border border-slate-200 bg-white overflow-hidden shadow-xl lg:shadow-sm shadow-slate-200/40 mb-8 lg:mb-5">
-                <div className="border-b border-slate-100 px-6 sm:px-8 lg:px-5 py-5 sm:py-6 lg:py-3 flex items-center justify-between bg-slate-50/30 lg:bg-white">
+                <div className="border-b border-slate-100 px-6 sm:px-8 lg:px-5 py-5 sm:py-6 lg:py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/30 lg:bg-white">
                     <div>
                         <h2 className="text-lg sm:text-xl lg:text-base font-black text-slate-900 tracking-tight">
                             Deleted Files
@@ -141,6 +256,16 @@ export default function DeletedItems() {
                             Showing {paginatedFiles.length} of {deletedFiles.length} files
                         </p>
                     </div>
+                    {deletedFiles.length > 0 && (
+                        <button
+                            type="button"
+                            onClick={permanentDeleteAllFiles}
+                            disabled={deletingAllFiles || deletingAllFolders}
+                            className="h-10 lg:h-8 px-5 lg:px-4 rounded-xl lg:rounded-lg bg-red-50 text-red-600 border border-red-100 text-[10px] sm:text-xs lg:text-[10px] font-black uppercase tracking-widest hover:bg-red-600 hover:text-white disabled:opacity-50 transition-all shadow-sm active:scale-95 self-start sm:self-auto"
+                        >
+                            {deletingAllFiles ? "Processing" : "Delete All"}
+                        </button>
+                    )}
                 </div>
 
                 {deletedFiles.length === 0 ? (
@@ -211,13 +336,38 @@ export default function DeletedItems() {
                                             </td>
 
                                             <td className="px-6 sm:px-8 lg:px-5 py-5 lg:py-3 text-right">
-                                                <button
-                                                    onClick={() => restoreFile(file._id)}
-                                                    disabled={restoringId === file._id}
-                                                    className="h-10 lg:h-8 px-6 lg:px-4 rounded-xl lg:rounded-lg bg-blue-600 text-white text-[10px] sm:text-xs lg:text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 disabled:opacity-50 transition-all shadow-lg lg:shadow-sm shadow-blue-500/20 active:scale-95"
-                                                >
-                                                    {restoringId === file._id ? "Processing" : "Restore"}
-                                                </button>
+                                                <div className="inline-flex flex-wrap items-center justify-end gap-2">
+                                                    <button
+                                                        onClick={() => restoreFile(file._id)}
+                                                        disabled={
+                                                            restoringId === file._id ||
+                                                            deletingId === file._id
+                                                        }
+                                                        className="h-10 lg:h-8 px-6 lg:px-4 rounded-xl lg:rounded-lg bg-blue-600 text-white text-[10px] sm:text-xs lg:text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 disabled:opacity-50 transition-all shadow-lg lg:shadow-sm shadow-blue-500/20 active:scale-95"
+                                                    >
+                                                        {restoringId === file._id
+                                                            ? "Processing"
+                                                            : "Restore"}
+                                                    </button>
+
+                                                    <button
+                                                        onClick={() =>
+                                                            permanentDeleteFile(
+                                                                file._id,
+                                                                file.originalName || file.name
+                                                            )
+                                                        }
+                                                        disabled={
+                                                            restoringId === file._id ||
+                                                            deletingId === file._id
+                                                        }
+                                                        className="h-10 lg:h-8 px-6 lg:px-4 rounded-xl lg:rounded-lg bg-red-50 text-red-600 border border-red-100 text-[10px] sm:text-xs lg:text-[10px] font-black uppercase tracking-widest hover:bg-red-600 hover:text-white disabled:opacity-50 transition-all shadow-sm active:scale-95"
+                                                    >
+                                                        {deletingId === file._id
+                                                            ? "Processing"
+                                                            : "Delete"}
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}
@@ -256,7 +406,7 @@ export default function DeletedItems() {
 
             {/* Deleted Folders */}
             <section className="rounded-[32px] lg:rounded-[18px] border border-slate-200 bg-white overflow-hidden shadow-xl lg:shadow-sm shadow-slate-200/40">
-                <div className="border-b border-slate-100 px-6 sm:px-8 lg:px-5 py-5 sm:py-6 lg:py-3 flex items-center justify-between bg-slate-50/30 lg:bg-white">
+                <div className="border-b border-slate-100 px-6 sm:px-8 lg:px-5 py-5 sm:py-6 lg:py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/30 lg:bg-white">
                     <div>
                         <h2 className="text-lg sm:text-xl lg:text-base font-black text-slate-900 tracking-tight">
                             Deleted Folders
@@ -265,6 +415,16 @@ export default function DeletedItems() {
                             Showing {paginatedFolders.length} of {deletedFolders.length} folders
                         </p>
                     </div>
+                    {deletedFolders.length > 0 && (
+                        <button
+                            type="button"
+                            onClick={permanentDeleteAllFolders}
+                            disabled={deletingAllFiles || deletingAllFolders}
+                            className="h-10 lg:h-8 px-5 lg:px-4 rounded-xl lg:rounded-lg bg-red-50 text-red-600 border border-red-100 text-[10px] sm:text-xs lg:text-[10px] font-black uppercase tracking-widest hover:bg-red-600 hover:text-white disabled:opacity-50 transition-all shadow-sm active:scale-95 self-start sm:self-auto"
+                        >
+                            {deletingAllFolders ? "Processing" : "Delete All"}
+                        </button>
+                    )}
                 </div>
 
                 {deletedFolders.length === 0 ? (
@@ -309,6 +469,9 @@ export default function DeletedItems() {
                                                         </p>
                                                         <p className="text-[10px] lg:text-[9px] text-slate-400 font-black uppercase tracking-wider mt-1.5">
                                                             Archived Folder
+                                                            {folder.nestedDeletedCount > 0
+                                                                ? ` · +${folder.nestedDeletedCount} nested`
+                                                                : ""}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -319,13 +482,38 @@ export default function DeletedItems() {
                                             </td>
 
                                             <td className="px-6 sm:px-8 lg:px-5 py-5 lg:py-3 text-right">
-                                                <button
-                                                    onClick={() => restoreFolder(folder._id)}
-                                                    disabled={restoringId === folder._id}
-                                                    className="h-10 lg:h-8 px-6 lg:px-4 rounded-xl lg:rounded-lg bg-blue-600 text-white text-[10px] sm:text-xs lg:text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 disabled:opacity-50 transition-all shadow-lg lg:shadow-sm shadow-blue-500/20 active:scale-95"
-                                                >
-                                                    {restoringId === folder._id ? "Processing" : "Restore"}
-                                                </button>
+                                                <div className="inline-flex flex-wrap items-center justify-end gap-2">
+                                                    <button
+                                                        onClick={() => restoreFolder(folder._id)}
+                                                        disabled={
+                                                            restoringId === folder._id ||
+                                                            deletingId === folder._id
+                                                        }
+                                                        className="h-10 lg:h-8 px-6 lg:px-4 rounded-xl lg:rounded-lg bg-blue-600 text-white text-[10px] sm:text-xs lg:text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 disabled:opacity-50 transition-all shadow-lg lg:shadow-sm shadow-blue-500/20 active:scale-95"
+                                                    >
+                                                        {restoringId === folder._id
+                                                            ? "Processing"
+                                                            : "Restore"}
+                                                    </button>
+
+                                                    <button
+                                                        onClick={() =>
+                                                            permanentDeleteFolder(
+                                                                folder._id,
+                                                                folder.name
+                                                            )
+                                                        }
+                                                        disabled={
+                                                            restoringId === folder._id ||
+                                                            deletingId === folder._id
+                                                        }
+                                                        className="h-10 lg:h-8 px-6 lg:px-4 rounded-xl lg:rounded-lg bg-red-50 text-red-600 border border-red-100 text-[10px] sm:text-xs lg:text-[10px] font-black uppercase tracking-widest hover:bg-red-600 hover:text-white disabled:opacity-50 transition-all shadow-sm active:scale-95"
+                                                    >
+                                                        {deletingId === folder._id
+                                                            ? "Processing"
+                                                            : "Delete"}
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}
