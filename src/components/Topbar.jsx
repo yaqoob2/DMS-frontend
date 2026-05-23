@@ -6,7 +6,14 @@ import { Menu, Bell, LogOut, Search, Settings } from "lucide-react";
 export default function Topbar({ onMenuClick }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+
   const [searchTerm, setSearchTerm] = useState("");
+  const [imageFailed, setImageFailed] = useState(false);
+
+  const profileImageUrl =
+    user?.profileImageUrl && !imageFailed ? user.profileImageUrl : null;
+
+  const userInitial = user?.name?.charAt(0)?.toUpperCase() || "U";
 
   const handleLogout = () => {
     logout();
@@ -84,10 +91,21 @@ export default function Topbar({ onMenuClick }) {
             </div>
 
             <div className="relative shrink-0">
-              <div className="w-9 h-9 rounded-xl bg-slate-900 flex items-center justify-center text-white font-black text-sm shadow-xl shadow-slate-900/10">
-                {user?.name?.charAt(0).toUpperCase() || "U"}
+              <div className="w-12 h-12 rounded-full bg-slate-900 flex items-center justify-center text-white font-black text-base shadow-lg shadow-slate-900/10 overflow-hidden ring-2 ring-white border border-slate-200">
+                {profileImageUrl ? (
+                  <img
+                    src={profileImageUrl}
+                    alt={user?.name || "Profile"}
+                    onError={() => setImageFailed(true)}
+                    className="w-full h-full object-cover object-center"
+                    draggable="false"
+                  />
+                ) : (
+                  userInitial
+                )}
               </div>
-              <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white shadow-sm"></div>
+
+              <div className="absolute bottom-0 right-0 w-4 h-4 bg-emerald-500 rounded-full border-2 border-white shadow-sm"></div>
             </div>
 
             <button

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 
@@ -11,6 +11,7 @@ export default function UserManagement() {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [savingId, setSavingId] = useState(null);
+    const [uploadingImageId, setUploadingImageId] = useState(null);
     const [error, setError] = useState("");
 
     const [form, setForm] = useState({
@@ -116,6 +117,56 @@ export default function UserManagement() {
             alert("Failed to delete user.");
         } finally {
             setSavingId(null);
+        }
+    };
+
+    const uploadProfileImage = async (userId, file) => {
+        if (!file) return;
+
+        const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+
+        if (!allowedTypes.includes(file.type)) {
+            alert("Only JPG, PNG, and WEBP images are allowed.");
+            return;
+        }
+
+        if (file.size > 2 * 1024 * 1024) {
+            alert("Profile image must be less than 2MB.");
+            return;
+        }
+
+        try {
+            setUploadingImageId(userId);
+
+            const formData = new FormData();
+            formData.append("profileImage", file);
+
+            const res = await api.patch(
+                `/users/${userId}/profile-image`,
+                formData,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                }
+            );
+
+            const updatedUser = res.data?.user;
+
+            if (updatedUser) {
+                setUsers((prevUsers) =>
+                    prevUsers.map((user) =>
+                        user._id === userId ? updatedUser : user
+                    )
+                );
+            } else {
+                await loadUsers();
+            }
+        } catch (err) {
+            console.error(err);
+            alert(err.response?.data?.message || "Failed to upload profile image.");
+        } finally {
+            setUploadingImageId(null);
         }
     };
 
@@ -271,15 +322,18 @@ export default function UserManagement() {
                                         >
                                             <td className="px-5 py-4">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-9 h-9 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-xs font-bold text-blue-600 shadow-sm">
-                                                        {user.name?.charAt(0).toUpperCase()}
-                                                    </div>
+                                                    <ProfileImageUploader
+                                                        user={user}
+                                                        isUploading={uploadingImageId === user._id}
+                                                        onUpload={uploadProfileImage}
+                                                    />
+
                                                     <div>
                                                         <p className="text-sm font-semibold text-slate-900 tracking-tight">
                                                             {user.name}
                                                         </p>
                                                         <p className="text-[11px] text-slate-400 font-medium mt-0.5">
-                                                            Repository user
+                                                            Click image to upload
                                                         </p>
                                                     </div>
                                                 </div>
@@ -304,10 +358,11 @@ export default function UserManagement() {
 
                                             <td className="px-5 py-4">
                                                 <span
-                                                    className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-semibold border ${user.isActive
+                                                    className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-semibold border ${
+                                                        user.isActive
                                                             ? "bg-emerald-50 text-emerald-700 border-emerald-100"
                                                             : "bg-red-50 text-red-700 border-red-100"
-                                                        }`}
+                                                    }`}
                                                 >
                                                     {user.isActive ? "Active" : "Inactive"}
                                                 </span>
@@ -346,10 +401,14 @@ export default function UserManagement() {
                             {users.map((user) => (
                                 <div key={user._id} className="p-6 space-y-6">
                                     <div className="flex items-start justify-between gap-4">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-14 h-14 rounded-[1.5rem] bg-blue-600 flex items-center justify-center text-lg font-black text-white shadow-xl shadow-blue-500/20">
-                                                {user.name?.charAt(0).toUpperCase()}
-                                            </div>
+                                        <div className="flex items-center gap-4 min-w-0">
+                                            <ProfileImageUploader
+                                                user={user}
+                                                isUploading={uploadingImageId === user._id}
+                                                onUpload={uploadProfileImage}
+                                                mobile
+                                            />
+
                                             <div className="min-w-0">
                                                 <h3 className="text-sm font-black text-slate-900 leading-tight truncate">
                                                     {user.name}
@@ -357,14 +416,18 @@ export default function UserManagement() {
                                                 <p className="text-[11px] font-bold text-slate-500 mt-1 truncate">
                                                     {user.email}
                                                 </p>
+                                                <p className="text-[10px] font-black text-blue-500 mt-1 uppercase tracking-widest">
+                                                    Tap image to upload
+                                                </p>
                                             </div>
                                         </div>
 
                                         <span
-                                            className={`inline-flex items-center px-3 py-1 rounded-full text-[9px] font-black border uppercase tracking-widest ${user.isActive
+                                            className={`inline-flex items-center px-3 py-1 rounded-full text-[9px] font-black border uppercase tracking-widest ${
+                                                user.isActive
                                                     ? "bg-emerald-50 text-emerald-700 border-emerald-100"
                                                     : "bg-red-50 text-red-700 border-red-100"
-                                                }`}
+                                            }`}
                                         >
                                             {user.isActive ? "ACTIVE" : "RESTRICTED"}
                                         </span>
@@ -421,6 +484,81 @@ export default function UserManagement() {
                 )}
             </section>
         </div>
+    );
+}
+
+function ProfileImageUploader({ user, isUploading, onUpload, mobile = false }) {
+    const inputRef = useRef(null);
+
+    const handleClick = () => {
+        if (isUploading) return;
+        inputRef.current?.click();
+    };
+
+    const handleChange = async (e) => {
+        const file = e.target.files?.[0];
+
+        if (!file) return;
+
+        await onUpload(user._id, file);
+
+        e.target.value = "";
+    };
+
+    const imageUrl = user.profileImageUrl;
+
+    return (
+        <>
+            <button
+                type="button"
+                onClick={handleClick}
+                disabled={isUploading}
+                title="Upload profile image"
+                className={`relative shrink-0 overflow-hidden border flex items-center justify-center transition-all active:scale-95 disabled:opacity-70 ${
+                    mobile
+                        ? "w-14 h-14 rounded-[1.5rem] bg-blue-600 border-blue-500 shadow-xl shadow-blue-500/20"
+                        : "w-9 h-9 rounded-lg bg-blue-50 border-blue-100 shadow-sm hover:ring-4 hover:ring-blue-500/10"
+                }`}
+            >
+                {imageUrl ? (
+                    <img
+                        src={imageUrl}
+                        alt={user.name || "User"}
+                        className="w-full h-full object-cover"
+                    />
+                ) : (
+                    <span
+                        className={
+                            mobile
+                                ? "text-lg font-black text-white"
+                                : "text-xs font-bold text-blue-600"
+                        }
+                    >
+                        {user.name?.charAt(0).toUpperCase() || "U"}
+                    </span>
+                )}
+
+                {isUploading && (
+                    <div className="absolute inset-0 bg-white/75 flex items-center justify-center">
+                        <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                )}
+
+                {!isUploading && (
+                    <div className="absolute inset-x-0 bottom-0 bg-black/45 text-white text-[7px] font-black uppercase tracking-wider py-0.5 opacity-0 hover:opacity-100 transition-opacity">
+                        Upload
+                    </div>
+                )}
+            </button>
+
+            <input
+                ref={inputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={handleChange}
+            />
+        </>
     );
 }
 
