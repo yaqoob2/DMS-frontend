@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import toast from 'react-hot-toast';
 
 export default function CreateFolderModal({ isOpen, onClose, onCreate }) {
     const [name, setName] = useState('');
@@ -10,7 +11,7 @@ export default function CreateFolderModal({ isOpen, onClose, onCreate }) {
         e.preventDefault();
 
         if (!name.trim()) {
-            alert('Folder name is required');
+            toast.error('Folder name is required');
             return;
         }
 

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import toast from 'react-hot-toast';
 import { Link } from "react-router-dom";
 import { fileService, folderService } from "../api/services";
 import UploadModal from "../components/UploadModal";
@@ -116,7 +117,7 @@ export default function FileExplorer() {
       setSelectedFile(null);
       fetchData();
     } catch (err) {
-      alert(err.response?.data?.message || "Upload protocol failed");
+      toast.error(err.response?.data?.message || "Upload protocol failed");
     }
   };
 
@@ -129,7 +130,7 @@ export default function FileExplorer() {
 
       fetchData();
     } catch (err) {
-      alert(err.response?.data?.message || "Folder creation refused");
+      toast.error(err.response?.data?.message || "Folder creation refused");
     }
   };
 
@@ -158,7 +159,7 @@ export default function FileExplorer() {
 
       fetchData();
     } catch (err) {
-      alert(err.response?.data?.message || "Folder deletion sequence failed");
+      toast.error(err.response?.data?.message || "Folder deletion sequence failed");
     }
   };
 
@@ -173,7 +174,7 @@ export default function FileExplorer() {
 
       fetchData();
     } catch (err) {
-      alert(err.response?.data?.message || "Asset deletion sequence failed");
+      toast.error(err.response?.data?.message || "Asset deletion sequence failed");
     }
   };
 

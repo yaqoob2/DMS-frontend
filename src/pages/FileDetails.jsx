@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import toast from 'react-hot-toast';
 import { useParams, Link } from "react-router-dom";
 import { fileService, commentService, activityService } from "../api/services";
 import { formatSize, formatDate } from "../utils/formatters";
@@ -65,7 +66,7 @@ export default function FileDetails() {
       setPreview(res.data?.data || res.data);
       setIsPreviewOpen(true);
     } catch (err) {
-      alert(err.response?.data?.message || "Preview failed.");
+      toast.error(err.response?.data?.message || "Preview failed.");
     }
   };
 
@@ -78,9 +79,9 @@ export default function FileDetails() {
       const downloadUrl = res.data?.downloadUrl || res.data?.url || res.data?.signedUrl || res.data;
 
       if (typeof downloadUrl === "string") window.open(downloadUrl, "_blank");
-      else alert("Could not retrieve download link.");
+      else toast.error("Could not retrieve download link.");
     } catch {
-      alert("Download failed.");
+      toast.error("Download failed.");
     }
   };
 
@@ -102,7 +103,7 @@ export default function FileDetails() {
       setProgress(0);
       fetchData();
     } catch (err) {
-      alert(err.response?.data?.message || "Upload failed.");
+      toast.error(err.response?.data?.message || "Upload failed.");
     } finally {
       setUploading(false);
     }
@@ -115,7 +116,7 @@ export default function FileDetails() {
       await fileService.restoreVersion(id, versionId);
       fetchData();
     } catch {
-      alert("Restore failed.");
+      toast.error("Restore failed.");
     }
   };
 
@@ -129,7 +130,7 @@ export default function FileDetails() {
       setCommentText("");
       fetchData();
     } catch (err) {
-      alert(err.response?.data?.message || "Comment failed.");
+      toast.error(err.response?.data?.message || "Comment failed.");
     } finally {
       setCommenting(false);
     }
@@ -142,7 +143,7 @@ export default function FileDetails() {
       await commentService.delete(id, commentId);
       fetchData();
     } catch {
-      alert("Delete comment failed.");
+      toast.error("Delete comment failed.");
     }
   };
 

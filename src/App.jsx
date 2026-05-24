@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import AppLayout from "./layouts/AppLayout";
-
+import { Toaster } from "react-hot-toast";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import FileExplorer from "./pages/FileExplorer";
@@ -19,6 +19,20 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 3000,
+            style: {
+              borderRadius: "12px",
+              background: "#0f172a",
+              color: "#ffffff",
+              fontSize: "13px",
+              fontWeight: "600",
+            },
+          }}
+        />
+
         <Routes>
           <Route path="/login" element={<Login />} />
 

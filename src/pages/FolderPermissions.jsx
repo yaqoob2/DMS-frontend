@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import toast from 'react-hot-toast';
 import api from "../api/axios";
 
 export default function FolderPermissions() {
@@ -95,7 +96,7 @@ export default function FolderPermissions() {
             await loadPermissions(selectedFolder);
         } catch (err) {
             console.error(err);
-            alert("Failed to add permission.");
+            toast.error("Failed to add permission.");
         } finally {
             setSaving(false);
         }
@@ -112,7 +113,7 @@ export default function FolderPermissions() {
             await loadPermissions(selectedFolder);
         } catch (err) {
             console.error(err);
-            alert("Failed to update permission.");
+            toast.error("Failed to update permission.");
         } finally {
             setSaving(false);
         }
@@ -131,7 +132,7 @@ export default function FolderPermissions() {
             await loadPermissions(selectedFolder);
         } catch (err) {
             console.error(err);
-            alert("Failed to remove permission.");
+            toast.error("Failed to remove permission.");
         } finally {
             setSaving(false);
         }

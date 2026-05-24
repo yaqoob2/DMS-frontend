@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import toast from 'react-hot-toast';
 import api from "../api/axios";
 import { fileService, folderService, safetyService } from "../api/services";
 
@@ -50,7 +51,7 @@ export default function DeletedItems() {
             await fetchDeletedItems();
         } catch (err) {
             console.error(err);
-            alert("Failed to restore file.");
+            toast.error("Failed to restore file.");
         } finally {
             setRestoringId(null);
         }
@@ -63,7 +64,7 @@ export default function DeletedItems() {
             await fetchDeletedItems();
         } catch (err) {
             console.error(err);
-            alert("Failed to restore folder.");
+            toast.error("Failed to restore folder.");
         } finally {
             setRestoringId(null);
         }
@@ -89,7 +90,7 @@ export default function DeletedItems() {
                 err.response?.data?.message ||
                 err.response?.data?.error ||
                 "Failed to permanently delete file.";
-            alert(msg);
+            toast.error(msg);
         } finally {
             setDeletingId(null);
         }
@@ -115,7 +116,7 @@ export default function DeletedItems() {
                 err.response?.data?.message ||
                 err.response?.data?.error ||
                 "Failed to permanently delete folder.";
-            alert(msg);
+            toast.error(msg);
         } finally {
             setDeletingId(null);
         }
@@ -134,14 +135,14 @@ export default function DeletedItems() {
             const res = await safetyService.permanentDeleteAllFiles();
             const removed = res.data?.removedFileCount ?? 0;
             const skipped = res.data?.skippedCount ?? 0;
-            alert(
+            toast.success(
                 `Removed ${removed} file(s).` +
                     (skipped ? ` Skipped ${skipped} item(s) you cannot delete.` : "")
             );
             await fetchDeletedItems();
         } catch (err) {
             console.error(err);
-            alert(
+            toast.error(
                 err.response?.data?.message ||
                     "Failed to permanently delete all files."
             );
@@ -164,14 +165,14 @@ export default function DeletedItems() {
             const removedFolders = res.data?.removedFolderCount ?? 0;
             const removedFiles = res.data?.removedFileCount ?? 0;
             const skipped = res.data?.skippedCount ?? 0;
-            alert(
+            toast.success(
                 `Removed ${removedFolders} folder(s) and ${removedFiles} related file(s).` +
                     (skipped ? ` Skipped ${skipped} item(s) you cannot delete.` : "")
             );
             await fetchDeletedItems();
         } catch (err) {
             console.error(err);
-            alert(
+            toast.error(
                 err.response?.data?.message ||
                     "Failed to permanently delete all folders."
             );

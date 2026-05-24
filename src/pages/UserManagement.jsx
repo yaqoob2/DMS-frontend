@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import toast from 'react-hot-toast';
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 
@@ -78,7 +79,7 @@ export default function UserManagement() {
             await loadUsers();
         } catch (err) {
             console.error(err);
-            alert("Failed to update user status.");
+            toast.error("Failed to update user status.");
         } finally {
             setSavingId(null);
         }
@@ -95,7 +96,7 @@ export default function UserManagement() {
             await loadUsers();
         } catch (err) {
             console.error(err);
-            alert("Failed to update user role.");
+            toast.error("Failed to update user role.");
         } finally {
             setSavingId(null);
         }
@@ -114,7 +115,7 @@ export default function UserManagement() {
             await loadUsers();
         } catch (err) {
             console.error(err);
-            alert("Failed to delete user.");
+            toast.error("Failed to delete user.");
         } finally {
             setSavingId(null);
         }
@@ -126,12 +127,12 @@ export default function UserManagement() {
         const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
 
         if (!allowedTypes.includes(file.type)) {
-            alert("Only JPG, PNG, and WEBP images are allowed.");
+            toast.error("Only JPG, PNG, and WEBP images are allowed.");
             return;
         }
 
         if (file.size > 2 * 1024 * 1024) {
-            alert("Profile image must be less than 2MB.");
+            toast.error("Profile image must be less than 2MB.");
             return;
         }
 
@@ -164,7 +165,7 @@ export default function UserManagement() {
             }
         } catch (err) {
             console.error(err);
-            alert(err.response?.data?.message || "Failed to upload profile image.");
+            toast.error(err.response?.data?.message || "Failed to upload profile image.");
         } finally {
             setUploadingImageId(null);
         }
